@@ -5996,14 +5996,6 @@ namespace SELDController
             this.serialPortDensei.BaudRate = 115200;
             this.serialPortDensei.WriteTimeout = 1000;
             // 
-            // paramsBindingSource
-            // 
-            this.paramsBindingSource.DataSource = typeof(SELDController.Params);
-            // 
-            // paramDataBindingSource
-            // 
-            this.paramDataBindingSource.DataSource = typeof(SELDController.ParamData);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
