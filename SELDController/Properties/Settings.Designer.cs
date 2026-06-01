@@ -994,5 +994,29 @@ namespace SELDController.Properties {
                 this["brk_ats_dengen_angl"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public double AtsPDengenTounyuTime {
+            get {
+                return ((double)(this["AtsPDengenTounyuTime"]));
+            }
+            set {
+                this["AtsPDengenTounyuTime"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public int AtsActiveMode {
+            get {
+                return ((int)(this["AtsActiveMode"]));
+            }
+            set {
+                this["AtsActiveMode"] = value;
+            }
+        }
     }
 }

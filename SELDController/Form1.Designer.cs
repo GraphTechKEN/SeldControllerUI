@@ -109,6 +109,7 @@ namespace SELDController
             this.cbLampOERKaisei = new System.Windows.Forms.CheckBox();
             this.label56 = new System.Windows.Forms.Label();
             this.cbLampOERStop = new System.Windows.Forms.CheckBox();
+            this.label113 = new System.Windows.Forms.Label();
             this.label18 = new System.Windows.Forms.Label();
             this.cbLampOERAtt = new System.Windows.Forms.CheckBox();
             this.rbPWest = new System.Windows.Forms.RadioButton();
@@ -130,6 +131,7 @@ namespace SELDController
             this.cbUnitDisp = new System.Windows.Forms.CheckBox();
             this.cbUnit1 = new System.Windows.Forms.CheckBox();
             this.cbLampEb = new System.Windows.Forms.CheckBox();
+            this.tbAtsPDengenTounyuTime = new System.Windows.Forms.TextBox();
             this.pnlATSP = new System.Windows.Forms.Panel();
             this.cbPBreak = new System.Windows.Forms.CheckBox();
             this.cbPFree = new System.Windows.Forms.CheckBox();
@@ -138,7 +140,7 @@ namespace SELDController
             this.cbPMode = new System.Windows.Forms.CheckBox();
             this.cbPPettern = new System.Windows.Forms.CheckBox();
             this.cbPDengen = new System.Windows.Forms.CheckBox();
-            this.tbAtsDengenTounyuTime = new System.Windows.Forms.TextBox();
+            this.tbAtsSDengenTounyuTime = new System.Windows.Forms.TextBox();
             this.btnSpdSave = new System.Windows.Forms.Button();
             this.btnSpdRead = new System.Windows.Forms.Button();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
@@ -183,6 +185,7 @@ namespace SELDController
             this.btnOhm = new System.Windows.Forms.Button();
             this.btnCurrentTest = new System.Windows.Forms.Button();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.cbAtsActiveMode = new System.Windows.Forms.CheckBox();
             this.btnATSDengen = new System.Windows.Forms.Button();
             this.tbATSDengen = new System.Windows.Forms.TextBox();
             this.label112 = new System.Windows.Forms.Label();
@@ -888,7 +891,6 @@ namespace SELDController
             this.tabControl1.Controls.Add(this.tpBvePlugin);
             this.tabControl1.Controls.Add(this.tpFirmware);
             this.tabControl1.Controls.Add(this.tpExtra);
-            this.tabControl1.Enabled = false;
             this.tabControl1.Location = new System.Drawing.Point(12, 131);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
@@ -1272,6 +1274,7 @@ namespace SELDController
             this.groupBox5.Controls.Add(this.cbLampOERKaisei);
             this.groupBox5.Controls.Add(this.label56);
             this.groupBox5.Controls.Add(this.cbLampOERStop);
+            this.groupBox5.Controls.Add(this.label113);
             this.groupBox5.Controls.Add(this.label18);
             this.groupBox5.Controls.Add(this.cbLampOERAtt);
             this.groupBox5.Controls.Add(this.rbPWest);
@@ -1281,8 +1284,9 @@ namespace SELDController
             this.groupBox5.Controls.Add(this.cbOERMode);
             this.groupBox5.Controls.Add(this.rbPEast);
             this.groupBox5.Controls.Add(this.pnlDisp);
+            this.groupBox5.Controls.Add(this.tbAtsPDengenTounyuTime);
             this.groupBox5.Controls.Add(this.pnlATSP);
-            this.groupBox5.Controls.Add(this.tbAtsDengenTounyuTime);
+            this.groupBox5.Controls.Add(this.tbAtsSDengenTounyuTime);
             this.groupBox5.Location = new System.Drawing.Point(435, 35);
             this.groupBox5.Name = "groupBox5";
             this.groupBox5.Size = new System.Drawing.Size(329, 366);
@@ -1295,7 +1299,7 @@ namespace SELDController
             this.groupBox26.Controls.Add(this.rbAC);
             this.groupBox26.Controls.Add(this.rbDC);
             this.groupBox26.Controls.Add(this.rbSection);
-            this.groupBox26.Location = new System.Drawing.Point(101, 210);
+            this.groupBox26.Location = new System.Drawing.Point(210, 216);
             this.groupBox26.Name = "groupBox26";
             this.groupBox26.Size = new System.Drawing.Size(101, 70);
             this.groupBox26.TabIndex = 96;
@@ -1414,7 +1418,7 @@ namespace SELDController
             // 
             this.label56.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label56.AutoSize = true;
-            this.label56.Location = new System.Drawing.Point(112, 310);
+            this.label56.Location = new System.Drawing.Point(115, 252);
             this.label56.Name = "label56";
             this.label56.Size = new System.Drawing.Size(81, 12);
             this.label56.TabIndex = 86;
@@ -1432,15 +1436,25 @@ namespace SELDController
             this.cbLampOERStop.Visible = false;
             this.cbLampOERStop.CheckedChanged += new System.EventHandler(this.cbDoor_CheckedChanged);
             // 
+            // label113
+            // 
+            this.label113.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.label113.AutoSize = true;
+            this.label113.Location = new System.Drawing.Point(108, 316);
+            this.label113.Name = "label113";
+            this.label113.Size = new System.Drawing.Size(98, 12);
+            this.label113.TabIndex = 86;
+            this.label113.Text = "P電源投入時間(s)";
+            // 
             // label18
             // 
             this.label18.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label18.AutoSize = true;
-            this.label18.Location = new System.Drawing.Point(10, 313);
+            this.label18.Location = new System.Drawing.Point(5, 316);
             this.label18.Name = "label18";
-            this.label18.Size = new System.Drawing.Size(91, 12);
+            this.label18.Size = new System.Drawing.Size(98, 12);
             this.label18.TabIndex = 86;
-            this.label18.Text = "電源投入時間(s)";
+            this.label18.Text = "S電源投入時間(s)";
             // 
             // cbLampOERAtt
             // 
@@ -1458,7 +1472,7 @@ namespace SELDController
             // 
             this.rbPWest.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.rbPWest.AutoSize = true;
-            this.rbPWest.Location = new System.Drawing.Point(154, 348);
+            this.rbPWest.Location = new System.Drawing.Point(157, 290);
             this.rbPWest.Name = "rbPWest";
             this.rbPWest.Size = new System.Drawing.Size(48, 16);
             this.rbPWest.TabIndex = 85;
@@ -1470,7 +1484,7 @@ namespace SELDController
             // 
             this.cbAtsDengenMode.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.cbAtsDengenMode.AutoSize = true;
-            this.cbAtsDengenMode.Location = new System.Drawing.Point(110, 328);
+            this.cbAtsDengenMode.Location = new System.Drawing.Point(113, 270);
             this.cbAtsDengenMode.Name = "cbAtsDengenMode";
             this.cbAtsDengenMode.Size = new System.Drawing.Size(80, 16);
             this.cbAtsDengenMode.TabIndex = 61;
@@ -1516,7 +1530,7 @@ namespace SELDController
             this.rbPEast.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.rbPEast.AutoSize = true;
             this.rbPEast.Checked = true;
-            this.rbPEast.Location = new System.Drawing.Point(108, 348);
+            this.rbPEast.Location = new System.Drawing.Point(111, 290);
             this.rbPEast.Name = "rbPEast";
             this.rbPEast.Size = new System.Drawing.Size(46, 16);
             this.rbPEast.TabIndex = 85;
@@ -1684,6 +1698,17 @@ namespace SELDController
             this.cbLampEb.UseVisualStyleBackColor = true;
             this.cbLampEb.CheckedChanged += new System.EventHandler(this.cbDoor_CheckedChanged);
             // 
+            // tbAtsPDengenTounyuTime
+            // 
+            this.tbAtsPDengenTounyuTime.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.tbAtsPDengenTounyuTime.Location = new System.Drawing.Point(120, 331);
+            this.tbAtsPDengenTounyuTime.Name = "tbAtsPDengenTounyuTime";
+            this.tbAtsPDengenTounyuTime.Size = new System.Drawing.Size(50, 19);
+            this.tbAtsPDengenTounyuTime.TabIndex = 14;
+            this.tbAtsPDengenTounyuTime.Text = "1.0";
+            this.tbAtsPDengenTounyuTime.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tbAtsPDengenTounyuTime.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tbAtsPDengenTounyuTime_KeyDown);
+            // 
             // pnlATSP
             // 
             this.pnlATSP.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -1777,16 +1802,16 @@ namespace SELDController
             this.cbPDengen.UseVisualStyleBackColor = true;
             this.cbPDengen.CheckedChanged += new System.EventHandler(this.cbDoor_CheckedChanged);
             // 
-            // tbAtsDengenTounyuTime
+            // tbAtsSDengenTounyuTime
             // 
-            this.tbAtsDengenTounyuTime.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.tbAtsDengenTounyuTime.Location = new System.Drawing.Point(22, 335);
-            this.tbAtsDengenTounyuTime.Name = "tbAtsDengenTounyuTime";
-            this.tbAtsDengenTounyuTime.Size = new System.Drawing.Size(50, 19);
-            this.tbAtsDengenTounyuTime.TabIndex = 14;
-            this.tbAtsDengenTounyuTime.Text = "0.75";
-            this.tbAtsDengenTounyuTime.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.tbAtsDengenTounyuTime.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tbAtsDengenTounyuTime_KeyDown);
+            this.tbAtsSDengenTounyuTime.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.tbAtsSDengenTounyuTime.Location = new System.Drawing.Point(17, 331);
+            this.tbAtsSDengenTounyuTime.Name = "tbAtsSDengenTounyuTime";
+            this.tbAtsSDengenTounyuTime.Size = new System.Drawing.Size(50, 19);
+            this.tbAtsSDengenTounyuTime.TabIndex = 14;
+            this.tbAtsSDengenTounyuTime.Text = "0.75";
+            this.tbAtsSDengenTounyuTime.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tbAtsSDengenTounyuTime.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tbAtsSDengenTounyuTime_KeyDown);
             // 
             // btnSpdSave
             // 
@@ -2293,6 +2318,7 @@ namespace SELDController
             // tabPage3
             // 
             this.tabPage3.AutoScroll = true;
+            this.tabPage3.Controls.Add(this.cbAtsActiveMode);
             this.tabPage3.Controls.Add(this.btnATSDengen);
             this.tabPage3.Controls.Add(this.tbATSDengen);
             this.tabPage3.Controls.Add(this.label112);
@@ -2323,6 +2349,17 @@ namespace SELDController
             this.tabPage3.Text = "コントローラー";
             this.tabPage3.UseVisualStyleBackColor = true;
             this.tabPage3.Click += new System.EventHandler(this.tabPage3_Click);
+            // 
+            // cbAtsActiveMode
+            // 
+            this.cbAtsActiveMode.AutoSize = true;
+            this.cbAtsActiveMode.Location = new System.Drawing.Point(22, 494);
+            this.cbAtsActiveMode.Name = "cbAtsActiveMode";
+            this.cbAtsActiveMode.Size = new System.Drawing.Size(163, 16);
+            this.cbAtsActiveMode.TabIndex = 102;
+            this.cbAtsActiveMode.Text = "ATS警報器/BZ21鳴動許可";
+            this.cbAtsActiveMode.UseVisualStyleBackColor = true;
+            this.cbAtsActiveMode.Click += new System.EventHandler(this.cbAtsActiveMode_Click);
             // 
             // btnATSDengen
             // 
@@ -6402,7 +6439,7 @@ namespace SELDController
         private System.Windows.Forms.CheckBox cbAtsPDengenAuto;
         private System.Windows.Forms.CheckBox cbAtsContactUse;
         private System.Windows.Forms.Label label18;
-        private System.Windows.Forms.TextBox tbAtsDengenTounyuTime;
+        private System.Windows.Forms.TextBox tbAtsSDengenTounyuTime;
         private System.Windows.Forms.Label label25;
         private System.Windows.Forms.Label label24;
         private System.Windows.Forms.TextBox tbBPvelocityKyudouThreshold;
@@ -6652,6 +6689,9 @@ namespace SELDController
         private System.Windows.Forms.ComboBox cbxATSDengen;
         private System.Windows.Forms.Button btnATSDengen;
         private System.Windows.Forms.TextBox tbATSDengen;
+        private System.Windows.Forms.Label label113;
+        private System.Windows.Forms.TextBox tbAtsPDengenTounyuTime;
+        private System.Windows.Forms.CheckBox cbAtsActiveMode;
     }
 }
 

@@ -1,27 +1,20 @@
-﻿using Microsoft.VisualBasic;
-using Microsoft.Win32;
-using SELDController;
+﻿using Microsoft.Win32;
 using SELDController.Properties;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
 using System.IO;
 using System.IO.Pipes;
 using System.IO.Ports;
 using System.Linq;
 using System.Management;
-using System.Runtime.Remoting.Contexts;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Serialization;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
-using System.Timers;
 
 //32bit Only
 
@@ -221,7 +214,8 @@ namespace SELDController
                 rbPWest.Checked = !Settings.Default.AtsPEast;
                 cbAtsPDengenAuto.Checked = Settings.Default.AtsPDengenAuto;
                 cbAtsContactUse.Checked = Settings.Default.AtsContactUse;
-                tbAtsDengenTounyuTime.Text = ((double)Settings.Default.AtsDengenTounyuTime / 1000).ToString("0.0##");
+                tbAtsSDengenTounyuTime.Text = ((double)Settings.Default.AtsDengenTounyuTime / 1000).ToString("0.0##");
+                tbAtsPDengenTounyuTime.Text = ((double)Settings.Default.AtsPDengenTounyuTime / 1000).ToString("0.0##");
 
                 tabControl2.SelectedIndex = Convert.ToInt16(Settings.Default.Evalve);
 
@@ -256,6 +250,7 @@ namespace SELDController
                 cbFVhold_CheckedChanged(null, null);
 
                 tbATSDengen.Text = Settings.Default.brk_ats_dengen_angl;
+                cbAtsActiveMode.Checked = Settings.Default.AtsActiveMode == 1;
             }
 
             pnlAutoair.Enabled = cbAutoairUse.Checked;
@@ -1085,7 +1080,7 @@ namespace SELDController
                 int.TryParse(data_all_.Substring(7), out int num);
                 if (num != 65535)
                 {
-                    tbAtsDengenTounyuTime.Text = ((double)num / 1000).ToString("0.0##");
+                    tbAtsSDengenTounyuTime.Text = ((double)num / 1000).ToString("0.0##");
                 }
             }
 
@@ -2078,10 +2073,11 @@ namespace SELDController
             {
                 CommandWrite("WR 200 " + (cbAtsPDengenAuto.Checked ? "1" : "0"), true);
                 CommandWrite("WR 202 " + (rbPEast.Checked ? "1" : "0"), true);
+                btnAtsPDengenTounyuTime_Click(sender, e); //208
             }
             if (board_Disp)
             {
-                btnAtsDengenTounyuTime_Click(sender, e); //140
+                btnAtsSDengenTounyuTime_Click(sender, e); //140
             }
             Disp();
             Settings.Default.Save();
@@ -3032,19 +3028,19 @@ namespace SELDController
             }
         }
 
-        private void tbAtsDengenTounyuTime_KeyDown(object sender, KeyEventArgs e)
+        private void tbAtsSDengenTounyuTime_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {
-                btnAtsDengenTounyuTime_Click(sender, e);
+                btnAtsSDengenTounyuTime_Click(sender, e);
             }
         }
 
-        private void btnAtsDengenTounyuTime_Click(object sender, EventArgs e)
+        private void btnAtsSDengenTounyuTime_Click(object sender, EventArgs e)
         {
             if (board_Disp)
             {
-                double.TryParse(tbAtsDengenTounyuTime.Text, out double d);
+                double.TryParse(tbAtsSDengenTounyuTime.Text, out double d);
                 Settings.Default.AtsDengenTounyuTime = (int)(d * 1000);
                 CommandWrite("WR 140 " + (int)(d * 1000), true);
             }
@@ -3209,6 +3205,7 @@ namespace SELDController
             {
                 CommandWrite("WR 202 " + 0, true);
             }
+            tbAtsPDengenTounyuTime.Enabled = true;
         }
 
         private void rbPEast_Click(object sender, EventArgs e)
@@ -3217,6 +3214,7 @@ namespace SELDController
             {
                 CommandWrite("WR 202 " + 1, true);
             }
+            tbAtsPDengenTounyuTime.Enabled = false;
         }
 
         private void tabControl1_KeyPress(object sender, KeyPressEventArgs e)
@@ -4629,6 +4627,31 @@ namespace SELDController
             {
                 btnATSDengen_Click(sender, e);
             }
+        }
+
+        private void tbAtsPDengenTounyuTime_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                btnAtsPDengenTounyuTime_Click(sender, e);
+            }
+        }
+
+        private void btnAtsPDengenTounyuTime_Click(object sender, EventArgs e)
+        {
+            if (board_Disp)
+            {
+                double.TryParse(tbAtsPDengenTounyuTime.Text, out double d);
+                Settings.Default.AtsPDengenTounyuTime = (int)(d * 1000);
+                CommandWrite("WR 208 " + (int)(d * 1000), true);
+            }
+        }
+
+        private void cbAtsActiveMode_Click(object sender, EventArgs e)
+        {
+            int n  = cbAtsActiveMode.Checked ? 1 : 0;
+            CommandWrite("WR 122 " + n.ToString(), true);
+            Settings.Default.AtsActiveMode = n;
         }
     }
 }

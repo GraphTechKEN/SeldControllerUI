@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO.Ports;
-using System.Runtime.Serialization;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -10,7 +8,6 @@ namespace SELDController
     /// <summary>
     /// 設定クラス
     /// </summary>
-    [DataContract(Namespace = "")]
     public class OutputInfo
     {
         /// <summary>
