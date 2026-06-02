@@ -514,6 +514,8 @@ namespace SELDController
             this.serialPortDensei = new System.IO.Ports.SerialPort(this.components);
             this.paramsBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.paramDataBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.label114 = new System.Windows.Forms.Label();
+            this.tbControlBoardVersion = new System.Windows.Forms.TextBox();
             this.menuStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -891,6 +893,7 @@ namespace SELDController
             this.tabControl1.Controls.Add(this.tpBvePlugin);
             this.tabControl1.Controls.Add(this.tpFirmware);
             this.tabControl1.Controls.Add(this.tpExtra);
+            this.tabControl1.Enabled = false;
             this.tabControl1.Location = new System.Drawing.Point(12, 131);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
@@ -5453,7 +5456,7 @@ namespace SELDController
             this.groupBox28.Controls.Add(this.button5);
             this.groupBox28.Controls.Add(this.button6);
             this.groupBox28.Controls.Add(this.button7);
-            this.groupBox28.Location = new System.Drawing.Point(8, 152);
+            this.groupBox28.Location = new System.Drawing.Point(8, 176);
             this.groupBox28.Name = "groupBox28";
             this.groupBox28.Size = new System.Drawing.Size(847, 137);
             this.groupBox28.TabIndex = 104;
@@ -5557,9 +5560,11 @@ namespace SELDController
             // 
             // groupBox27
             // 
+            this.groupBox27.Controls.Add(this.label114);
             this.groupBox27.Controls.Add(this.btnFirmRecovery);
             this.groupBox27.Controls.Add(this.btnFirmBackup);
             this.groupBox27.Controls.Add(this.btnFirmDirOpen);
+            this.groupBox27.Controls.Add(this.tbControlBoardVersion);
             this.groupBox27.Controls.Add(this.btnHexFileChange);
             this.groupBox27.Controls.Add(this.tbHexFilePath);
             this.groupBox27.Controls.Add(this.btnEepromWrite);
@@ -5567,7 +5572,7 @@ namespace SELDController
             this.groupBox27.Controls.Add(this.btnFirmUpdate);
             this.groupBox27.Location = new System.Drawing.Point(8, 44);
             this.groupBox27.Name = "groupBox27";
-            this.groupBox27.Size = new System.Drawing.Size(847, 102);
+            this.groupBox27.Size = new System.Drawing.Size(847, 126);
             this.groupBox27.TabIndex = 103;
             this.groupBox27.TabStop = false;
             this.groupBox27.Text = "SELD Controller メイン制御基板";
@@ -5575,7 +5580,7 @@ namespace SELDController
             // btnFirmRecovery
             // 
             this.btnFirmRecovery.Enabled = false;
-            this.btnFirmRecovery.Location = new System.Drawing.Point(156, 42);
+            this.btnFirmRecovery.Location = new System.Drawing.Point(156, 70);
             this.btnFirmRecovery.Name = "btnFirmRecovery";
             this.btnFirmRecovery.Size = new System.Drawing.Size(130, 23);
             this.btnFirmRecovery.TabIndex = 101;
@@ -5585,7 +5590,7 @@ namespace SELDController
             // 
             // btnFirmBackup
             // 
-            this.btnFirmBackup.Location = new System.Drawing.Point(22, 42);
+            this.btnFirmBackup.Location = new System.Drawing.Point(22, 70);
             this.btnFirmBackup.Name = "btnFirmBackup";
             this.btnFirmBackup.Size = new System.Drawing.Size(130, 23);
             this.btnFirmBackup.TabIndex = 100;
@@ -5595,7 +5600,7 @@ namespace SELDController
             // 
             // btnFirmDirOpen
             // 
-            this.btnFirmDirOpen.Location = new System.Drawing.Point(760, 15);
+            this.btnFirmDirOpen.Location = new System.Drawing.Point(760, 43);
             this.btnFirmDirOpen.Name = "btnFirmDirOpen";
             this.btnFirmDirOpen.Size = new System.Drawing.Size(75, 23);
             this.btnFirmDirOpen.TabIndex = 97;
@@ -5605,7 +5610,7 @@ namespace SELDController
             // 
             // btnHexFileChange
             // 
-            this.btnHexFileChange.Location = new System.Drawing.Point(679, 15);
+            this.btnHexFileChange.Location = new System.Drawing.Point(679, 43);
             this.btnHexFileChange.Name = "btnHexFileChange";
             this.btnHexFileChange.Size = new System.Drawing.Size(75, 23);
             this.btnHexFileChange.TabIndex = 97;
@@ -5617,7 +5622,7 @@ namespace SELDController
             // 
             this.tbHexFilePath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.tbHexFilePath.Location = new System.Drawing.Point(22, 17);
+            this.tbHexFilePath.Location = new System.Drawing.Point(22, 45);
             this.tbHexFilePath.Name = "tbHexFilePath";
             this.tbHexFilePath.Size = new System.Drawing.Size(651, 19);
             this.tbHexFilePath.TabIndex = 96;
@@ -5625,7 +5630,7 @@ namespace SELDController
             // btnEepromWrite
             // 
             this.btnEepromWrite.Enabled = false;
-            this.btnEepromWrite.Location = new System.Drawing.Point(156, 71);
+            this.btnEepromWrite.Location = new System.Drawing.Point(156, 99);
             this.btnEepromWrite.Name = "btnEepromWrite";
             this.btnEepromWrite.Size = new System.Drawing.Size(130, 23);
             this.btnEepromWrite.TabIndex = 95;
@@ -5635,7 +5640,7 @@ namespace SELDController
             // 
             // btnEepromRoad
             // 
-            this.btnEepromRoad.Location = new System.Drawing.Point(22, 71);
+            this.btnEepromRoad.Location = new System.Drawing.Point(22, 99);
             this.btnEepromRoad.Name = "btnEepromRoad";
             this.btnEepromRoad.Size = new System.Drawing.Size(130, 23);
             this.btnEepromRoad.TabIndex = 95;
@@ -5645,7 +5650,7 @@ namespace SELDController
             // 
             // btnFirmUpdate
             // 
-            this.btnFirmUpdate.Location = new System.Drawing.Point(289, 42);
+            this.btnFirmUpdate.Location = new System.Drawing.Point(289, 70);
             this.btnFirmUpdate.Name = "btnFirmUpdate";
             this.btnFirmUpdate.Size = new System.Drawing.Size(130, 23);
             this.btnFirmUpdate.TabIndex = 95;
@@ -6032,6 +6037,22 @@ namespace SELDController
             // 
             this.serialPortDensei.BaudRate = 115200;
             this.serialPortDensei.WriteTimeout = 1000;
+            // 
+            // label114
+            // 
+            this.label114.AutoSize = true;
+            this.label114.Location = new System.Drawing.Point(21, 25);
+            this.label114.Name = "label114";
+            this.label114.Size = new System.Drawing.Size(107, 12);
+            this.label114.TabIndex = 106;
+            this.label114.Text = "現在の制御基板Ver.";
+            // 
+            // tbControlBoardVersion
+            // 
+            this.tbControlBoardVersion.Location = new System.Drawing.Point(134, 20);
+            this.tbControlBoardVersion.Name = "tbControlBoardVersion";
+            this.tbControlBoardVersion.Size = new System.Drawing.Size(166, 19);
+            this.tbControlBoardVersion.TabIndex = 105;
             // 
             // Form1
             // 
@@ -6692,6 +6713,8 @@ namespace SELDController
         private System.Windows.Forms.Label label113;
         private System.Windows.Forms.TextBox tbAtsPDengenTounyuTime;
         private System.Windows.Forms.CheckBox cbAtsActiveMode;
+        private System.Windows.Forms.Label label114;
+        private System.Windows.Forms.TextBox tbControlBoardVersion;
     }
 }
 

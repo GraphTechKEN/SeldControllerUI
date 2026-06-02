@@ -62,39 +62,14 @@ namespace SELDController
         private void Form1_Load(object sender, EventArgs e)
         {
 
-            btnSpdButtons[0] = btn010;
-            btnSpdButtons[1] = btn020;
-            btnSpdButtons[2] = btn030;
-            btnSpdButtons[3] = btn040;
-            btnSpdButtons[4] = btn050;
-            btnSpdButtons[5] = btn060;
-            btnSpdButtons[6] = btn070;
-            btnSpdButtons[7] = btn080;
-            btnSpdButtons[8] = btn090;
-            btnSpdButtons[9] = btn100;
-            btnSpdButtons[10] = btn110;
-            btnSpdButtons[11] = btn120;
-            btnSpdButtons[12] = btn130;
-            btnSpdButtons[13] = btn140;
-            btnSpdButtons[14] = btn150;
-            btnSpdButtons[15] = btn160;
+            for (int i = 0; i < 16; i++)
+            {
+                string suffix = string.Format("{0:000}", (i + 1) * 10); // "010", "020" ...
 
-            tbSpdTextBox[0] = tb010;
-            tbSpdTextBox[1] = tb020;
-            tbSpdTextBox[2] = tb030;
-            tbSpdTextBox[3] = tb040;
-            tbSpdTextBox[4] = tb050;
-            tbSpdTextBox[5] = tb060;
-            tbSpdTextBox[6] = tb070;
-            tbSpdTextBox[7] = tb080;
-            tbSpdTextBox[8] = tb090;
-            tbSpdTextBox[9] = tb100;
-            tbSpdTextBox[10] = tb110;
-            tbSpdTextBox[11] = tb120;
-            tbSpdTextBox[12] = tb130;
-            tbSpdTextBox[13] = tb140;
-            tbSpdTextBox[14] = tb150;
-            tbSpdTextBox[15] = tb160;
+                // コントロール名から動的に検索して配列に格納
+                btnSpdButtons[i] = this.Controls.Find($"btn{suffix}", true).FirstOrDefault() as Button;
+                tbSpdTextBox[i] = this.Controls.Find($"tb{suffix}", true).FirstOrDefault() as TextBox;
+            }
 
             Settings.Default.Reload();
             btnSerialPortOpen.Enabled = setSerialComboBox(cbPortSelect, Settings.Default.portName);
@@ -483,6 +458,7 @@ namespace SELDController
                 serialPort1Open();
                 CommandWrite("MON 0");
                 CommandWrite("RD 100");
+                CommandWrite("RD 090");
                 tabControl1.Focus();
                 Disp();
 
@@ -738,7 +714,6 @@ namespace SELDController
                                             {
                                                 CommandWrite("WR 000 " + iAdjN.ToString(), true);
                                             }
-                                            Thread.Sleep(100);
                                             CommandWrite("MD POT 0", true);
                                         }
                                         if (flgAdjEB)
@@ -749,7 +724,6 @@ namespace SELDController
                                             {
                                                 CommandWrite("WR 002 " + iAdjEB.ToString(), true);
                                             }
-                                            Thread.Sleep(100);
                                             CommandWrite("MD POT 0", true);
                                         }
                                     }
@@ -848,9 +822,11 @@ namespace SELDController
             return d;
 
         }
-
+        private int VERSION_MINOR, VERSION_MAJOR, VERSION_BUILD, VERSION_PATCH;
+        private char c;
         private void read_Settings(string data_all_, string data_)
         {
+
 
             if (data_.Length > 0)
             {
@@ -981,6 +957,50 @@ namespace SELDController
             else if (data_all_.IndexOf("OK 084") == 0)
             {
                 Control_Input(data_all_, tbATSDengen);
+            }
+            //基板種類
+            else if (data_all_.IndexOf("OK 090") == 0)
+            {
+                String s = data_all_.Substring(7).Trim();
+                int.TryParse(s, out int d);
+                d &= 0xFF;
+                c = (char)d;
+                if (c == 'C' || d == 0xFF)
+                {
+                    CommandWrite("RD 092");
+                }
+                else
+                {
+                    MessageBox.Show("接続先が制御基板ではないかもしれません。接続先またはバージョンを確認してください。");
+                }
+                //Control_Input(data_all_, tbATSDengen);
+            }
+            else if (data_all_.IndexOf("OK 092") == 0)
+            {
+                String s = data_all_.Substring(7).Trim();
+                int.TryParse(s, out int d);
+                VERSION_MINOR = d >> 8;
+                VERSION_MAJOR = d & 0xFF;
+                CommandWrite("RD 094");
+                //Control_Input(data_all_, tbATSDengen);
+            }
+            else if (data_all_.IndexOf("OK 094") == 0)
+            {
+                String s = data_all_.Substring(7).Trim();
+                int.TryParse(s, out int d);
+                VERSION_BUILD = d >> 8;
+                VERSION_PATCH = d & 0xFF;
+                String boardVer;
+                if(c == 0xFF)
+                {
+                    boardVer = "N/A";
+                }
+                else
+                {
+                    boardVer = c.ToString() + " " + VERSION_MAJOR.ToString() + "." + VERSION_MINOR.ToString() + "." + VERSION_PATCH.ToString() + "." + VERSION_BUILD.ToString();
+                }
+                    tbControlBoardVersion.Text = boardVer;
+                //Control_Input(data_all_, tbATSDengen);
             }
             else if (data_all_.IndexOf("OK 100 1") == 0)
             {
@@ -1248,7 +1268,7 @@ namespace SELDController
                     timer1.Start();
                 }
                 Command_Sender(str);
-                Thread.Sleep(20);
+                Thread.Sleep(50);
                 str_latch = str;
             }
         }
@@ -1571,7 +1591,6 @@ namespace SELDController
             tbSpdTest.Text = tbarSpdTest.Value.ToString();
             ReadSimPress();
             Disp();
-            Thread.Sleep(20);
         }
 
         private void tbBrkNum_KeyDown(object sender, KeyEventArgs e)
@@ -1731,16 +1750,17 @@ namespace SELDController
             btnSpdSetRead_Click(sender, e);
             if (board_Disp)
             {
-                Thread.Sleep(50);
-
+                CommandWrite("RD 122", true);//ATS_Active_Mode 0:鳴動なし 1以上:鳴動許可
                 CommandWrite("RD 140", true);//ATS-S 電源投入時間
             }
             if (board_ATSP)
             {
-                Thread.Sleep(50);
-
                 CommandWrite("RD 200", true);//ATS-P 電源自動モード
                 CommandWrite("RD 202", true);//ATS-P East(1)/West(0)
+                CommandWrite("RD 204", true);//ATS未投入防止 1bit:(1)警報器(0)警報装置 2bit:(1)2ノッチ(0)3ノッチ
+                CommandWrite("RD 206", true);//206 BZ21強制停止タイマー
+                CommandWrite("RD 208", true);//208 ATS-P(West)表示灯点灯遅延タイマ
+
             }
             btnSpdSave.Enabled = true;
         }
@@ -2530,7 +2550,6 @@ namespace SELDController
         {
             if (board_Disp)
             {
-                Thread.Sleep(50);
                 CommandWrite("RD 102", true);
                 CommandWrite("RD 104", true);
                 CommandWrite("RD 106", true);
@@ -2558,7 +2577,6 @@ namespace SELDController
 
 
                 btnPressSave.Enabled = true;
-                Thread.Sleep(50);
             }
         }
 
@@ -3265,7 +3283,6 @@ namespace SELDController
                     tbSpdTest.Text = tbarSpdTest.Value.ToString();
                 }
                 CommandWrite("RD " + i.ToString("D3"), true);
-                Thread.Sleep(20);
             }
 
             btnSpdSetSave.Enabled = true;
@@ -3275,7 +3292,6 @@ namespace SELDController
         {
             // 1. 制限設定の実行
             btnLimit_Click(sender, e);
-            Thread.Sleep(20);
 
             // 2. 10から160まで順番に処理
             // tbSpdTextBox[0]が10、[1]が20...[15]が160に対応している前提
@@ -3285,7 +3301,6 @@ namespace SELDController
                 {
                     // TextBoxをsenderとして渡すことでspeedBtn_Click内のロジックが動く
                     speedBtn_Click(tb, e);
-                    Thread.Sleep(20);
                 }
             }
 
