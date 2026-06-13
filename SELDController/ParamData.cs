@@ -7,7 +7,7 @@ using System.ComponentModel;
 
 namespace SELDController
 {
-    class ParamData
+    public class ParamData
     {
         /// <summary>
         /// 番号
@@ -27,6 +27,14 @@ namespace SELDController
         /// </summary>
         [DisplayName("データ")]
         public string Data { get; set; } = "";
+
+        // パラメータなしのコンストラクタ（XML シリアライザ用）
+        public ParamData()
+        {
+            Num = "";
+            Name = "";
+            Data = "";
+        }
 
         public ParamData(string num = "", string name = "", string data = "")
         {

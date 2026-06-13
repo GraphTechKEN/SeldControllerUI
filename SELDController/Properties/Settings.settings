@@ -225,7 +225,7 @@
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="RegOffDelay" Type="System.String" Scope="User">
-      <Value Profile="(Default)">2000</Value>
+      <Value Profile="(Default)">2.0</Value>
     </Setting>
     <Setting Name="portNameAirRead" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
@@ -250,6 +250,12 @@
     </Setting>
     <Setting Name="AtsActiveMode" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="adj_N" Type="System.String" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="adj_EB" Type="System.String" Scope="User">
+      <Value Profile="(Default)">1023</Value>
     </Setting>
   </Settings>
 </SettingsFile>

@@ -913,7 +913,7 @@ namespace SELDController.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2000")]
+        [global::System.Configuration.DefaultSettingValueAttribute("2.0")]
         public string RegOffDelay {
             get {
                 return ((string)(this["RegOffDelay"]));
@@ -1016,6 +1016,30 @@ namespace SELDController.Properties {
             }
             set {
                 this["AtsActiveMode"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public string adj_N {
+            get {
+                return ((string)(this["adj_N"]));
+            }
+            set {
+                this["adj_N"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1023")]
+        public string adj_EB {
+            get {
+                return ((string)(this["adj_EB"]));
+            }
+            set {
+                this["adj_EB"] = value;
             }
         }
     }

@@ -185,9 +185,11 @@ namespace SELDController
             this.btnOhm = new System.Windows.Forms.Button();
             this.btnCurrentTest = new System.Windows.Forms.Button();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.cbBVEForceMode = new System.Windows.Forms.CheckBox();
+            this.cbTransferEBState = new System.Windows.Forms.CheckBox();
             this.cbAtsActiveMode = new System.Windows.Forms.CheckBox();
-            this.btnATSDengen = new System.Windows.Forms.Button();
-            this.tbATSDengen = new System.Windows.Forms.TextBox();
+            this.btnATSDengenAngle = new System.Windows.Forms.Button();
+            this.tbATSDengenAngle = new System.Windows.Forms.TextBox();
             this.label112 = new System.Windows.Forms.Label();
             this.cbxATSDengen = new System.Windows.Forms.ComboBox();
             this.label111 = new System.Windows.Forms.Label();
@@ -218,6 +220,8 @@ namespace SELDController
             this.btnBrkNum = new System.Windows.Forms.Button();
             this.tbBrkSapMinAngl = new System.Windows.Forms.TextBox();
             this.tbBrkSapMaxAngl = new System.Windows.Forms.TextBox();
+            this.tbAdjEB = new System.Windows.Forms.TextBox();
+            this.tbAdjN = new System.Windows.Forms.TextBox();
             this.tbBrkNum = new System.Windows.Forms.TextBox();
             this.tbEBAngl = new System.Windows.Forms.TextBox();
             this.tbChatFilter = new System.Windows.Forms.TextBox();
@@ -454,10 +458,25 @@ namespace SELDController
             this.tbPluginDirectory = new System.Windows.Forms.TextBox();
             this.btnPluginInstall = new System.Windows.Forms.Button();
             this.tpFirmware = new System.Windows.Forms.TabPage();
-            this.groupBox28 = new System.Windows.Forms.GroupBox();
+            this.gpbATSP = new System.Windows.Forms.GroupBox();
+            this.label116 = new System.Windows.Forms.Label();
+            this.comboBox1 = new System.Windows.Forms.ComboBox();
+            this.button8 = new System.Windows.Forms.Button();
+            this.button9 = new System.Windows.Forms.Button();
+            this.tbATSPBoardVersion = new System.Windows.Forms.TextBox();
+            this.button10 = new System.Windows.Forms.Button();
+            this.button11 = new System.Windows.Forms.Button();
+            this.button12 = new System.Windows.Forms.Button();
+            this.textBox3 = new System.Windows.Forms.TextBox();
+            this.button13 = new System.Windows.Forms.Button();
+            this.button14 = new System.Windows.Forms.Button();
+            this.button15 = new System.Windows.Forms.Button();
+            this.gpbDispBoard = new System.Windows.Forms.GroupBox();
+            this.label115 = new System.Windows.Forms.Label();
             this.cbPortSelectDensei = new System.Windows.Forms.ComboBox();
             this.btnOpenDensei = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
+            this.tbDispBoardVersion = new System.Windows.Forms.TextBox();
             this.button2 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
             this.button4 = new System.Windows.Forms.Button();
@@ -465,12 +484,13 @@ namespace SELDController
             this.button5 = new System.Windows.Forms.Button();
             this.button6 = new System.Windows.Forms.Button();
             this.button7 = new System.Windows.Forms.Button();
-            this.groupBox27 = new System.Windows.Forms.GroupBox();
-            this.btnFirmRecovery = new System.Windows.Forms.Button();
+            this.gpbControllerBoard = new System.Windows.Forms.GroupBox();
+            this.label114 = new System.Windows.Forms.Label();
             this.btnFirmBackup = new System.Windows.Forms.Button();
             this.btnFirmDirOpen = new System.Windows.Forms.Button();
+            this.tbControlBoardVersion = new System.Windows.Forms.TextBox();
             this.btnHexFileChange = new System.Windows.Forms.Button();
-            this.tbHexFilePath = new System.Windows.Forms.TextBox();
+            this.tbHexFilePathC = new System.Windows.Forms.TextBox();
             this.btnEepromWrite = new System.Windows.Forms.Button();
             this.btnEepromRoad = new System.Windows.Forms.Button();
             this.btnFirmUpdate = new System.Windows.Forms.Button();
@@ -512,10 +532,16 @@ namespace SELDController
             this.btnJreTsStart = new System.Windows.Forms.Button();
             this.label109 = new System.Windows.Forms.Label();
             this.serialPortDensei = new System.IO.Ports.SerialPort(this.components);
-            this.paramsBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            this.paramDataBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            this.label114 = new System.Windows.Forms.Label();
-            this.tbControlBoardVersion = new System.Windows.Forms.TextBox();
+            this.timerDispBoardFinder = new System.Windows.Forms.Timer(this.components);
+            this.timerATSPBoardFinder = new System.Windows.Forms.Timer(this.components);
+            this.btnSaveParamXml = new System.Windows.Forms.Button();
+            this.btnLoadParamXml = new System.Windows.Forms.Button();
+            this.serialPortChecker = new System.Windows.Forms.Timer(this.components);
+            this.cbVersionListCHex = new System.Windows.Forms.ComboBox();
+            this.cbVersionListCBin = new System.Windows.Forms.ComboBox();
+            this.tbBinFilePathC = new System.Windows.Forms.TextBox();
+            this.button16 = new System.Windows.Forms.Button();
+            this.button17 = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -582,13 +608,12 @@ namespace SELDController
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.tpBvePlugin.SuspendLayout();
             this.tpFirmware.SuspendLayout();
-            this.groupBox28.SuspendLayout();
-            this.groupBox27.SuspendLayout();
+            this.gpbATSP.SuspendLayout();
+            this.gpbDispBoard.SuspendLayout();
+            this.gpbControllerBoard.SuspendLayout();
             this.tpExtra.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.statusStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.paramsBindingSource)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.paramDataBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -599,7 +624,7 @@ namespace SELDController
             this.基板設定ToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1164, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(1169, 24);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -655,7 +680,7 @@ namespace SELDController
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tbSerialRcv.Location = new System.Drawing.Point(79, 743);
             this.tbSerialRcv.Name = "tbSerialRcv";
-            this.tbSerialRcv.Size = new System.Drawing.Size(1076, 19);
+            this.tbSerialRcv.Size = new System.Drawing.Size(1081, 19);
             this.tbSerialRcv.TabIndex = 52;
             // 
             // btnSerialPortOpen
@@ -897,7 +922,7 @@ namespace SELDController
             this.tabControl1.Location = new System.Drawing.Point(12, 131);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(1152, 581);
+            this.tabControl1.Size = new System.Drawing.Size(1157, 581);
             this.tabControl1.TabIndex = 5;
             this.tabControl1.SelectedIndexChanged += new System.EventHandler(this.tabControl1_SelectedIndexChanged);
             // 
@@ -914,7 +939,7 @@ namespace SELDController
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(1144, 555);
+            this.tabPage1.Size = new System.Drawing.Size(1149, 555);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "パネル";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -2321,9 +2346,11 @@ namespace SELDController
             // tabPage3
             // 
             this.tabPage3.AutoScroll = true;
+            this.tabPage3.Controls.Add(this.cbBVEForceMode);
+            this.tabPage3.Controls.Add(this.cbTransferEBState);
             this.tabPage3.Controls.Add(this.cbAtsActiveMode);
-            this.tabPage3.Controls.Add(this.btnATSDengen);
-            this.tabPage3.Controls.Add(this.tbATSDengen);
+            this.tabPage3.Controls.Add(this.btnATSDengenAngle);
+            this.tabPage3.Controls.Add(this.tbATSDengenAngle);
             this.tabPage3.Controls.Add(this.label112);
             this.tabPage3.Controls.Add(this.cbxATSDengen);
             this.tabPage3.Controls.Add(this.label111);
@@ -2347,16 +2374,38 @@ namespace SELDController
             this.tabPage3.Controls.Add(this.btnBrkRead);
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(1144, 555);
+            this.tabPage3.Size = new System.Drawing.Size(1149, 555);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "コントローラー";
             this.tabPage3.UseVisualStyleBackColor = true;
             this.tabPage3.Click += new System.EventHandler(this.tabPage3_Click);
             // 
+            // cbBVEForceMode
+            // 
+            this.cbBVEForceMode.AutoSize = true;
+            this.cbBVEForceMode.Location = new System.Drawing.Point(22, 535);
+            this.cbBVEForceMode.Name = "cbBVEForceMode";
+            this.cbBVEForceMode.Size = new System.Drawing.Size(159, 16);
+            this.cbBVEForceMode.TabIndex = 103;
+            this.cbBVEForceMode.Text = "電源投入時強制BVEモード";
+            this.cbBVEForceMode.UseVisualStyleBackColor = true;
+            this.cbBVEForceMode.Click += new System.EventHandler(this.cbAtsConf_Click);
+            // 
+            // cbTransferEBState
+            // 
+            this.cbTransferEBState.AutoSize = true;
+            this.cbTransferEBState.Location = new System.Drawing.Point(22, 513);
+            this.cbTransferEBState.Name = "cbTransferEBState";
+            this.cbTransferEBState.Size = new System.Drawing.Size(163, 16);
+            this.cbTransferEBState.TabIndex = 103;
+            this.cbTransferEBState.Text = "EB投入状態を強制転送する";
+            this.cbTransferEBState.UseVisualStyleBackColor = true;
+            this.cbTransferEBState.Click += new System.EventHandler(this.cbAtsConf_Click);
+            // 
             // cbAtsActiveMode
             // 
             this.cbAtsActiveMode.AutoSize = true;
-            this.cbAtsActiveMode.Location = new System.Drawing.Point(22, 494);
+            this.cbAtsActiveMode.Location = new System.Drawing.Point(22, 491);
             this.cbAtsActiveMode.Name = "cbAtsActiveMode";
             this.cbAtsActiveMode.Size = new System.Drawing.Size(163, 16);
             this.cbAtsActiveMode.TabIndex = 102;
@@ -2364,25 +2413,25 @@ namespace SELDController
             this.cbAtsActiveMode.UseVisualStyleBackColor = true;
             this.cbAtsActiveMode.Click += new System.EventHandler(this.cbAtsActiveMode_Click);
             // 
-            // btnATSDengen
+            // btnATSDengenAngle
             // 
-            this.btnATSDengen.Location = new System.Drawing.Point(636, 513);
-            this.btnATSDengen.Name = "btnATSDengen";
-            this.btnATSDengen.Size = new System.Drawing.Size(107, 23);
-            this.btnATSDengen.TabIndex = 97;
-            this.btnATSDengen.Text = "ATS電源[°](155)";
-            this.btnATSDengen.UseVisualStyleBackColor = true;
-            this.btnATSDengen.Click += new System.EventHandler(this.btnATSDengen_Click);
+            this.btnATSDengenAngle.Location = new System.Drawing.Point(636, 513);
+            this.btnATSDengenAngle.Name = "btnATSDengenAngle";
+            this.btnATSDengenAngle.Size = new System.Drawing.Size(107, 23);
+            this.btnATSDengenAngle.TabIndex = 97;
+            this.btnATSDengenAngle.Text = "ATS電源[°](155)";
+            this.btnATSDengenAngle.UseVisualStyleBackColor = true;
+            this.btnATSDengenAngle.Click += new System.EventHandler(this.btnATSDengenAngle_Click);
             // 
-            // tbATSDengen
+            // tbATSDengenAngle
             // 
-            this.tbATSDengen.Location = new System.Drawing.Point(749, 515);
-            this.tbATSDengen.Name = "tbATSDengen";
-            this.tbATSDengen.Size = new System.Drawing.Size(50, 19);
-            this.tbATSDengen.TabIndex = 97;
-            this.tbATSDengen.Text = "155";
-            this.tbATSDengen.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.tbATSDengen.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tbATSDengen_KeyDown);
+            this.tbATSDengenAngle.Location = new System.Drawing.Point(749, 515);
+            this.tbATSDengenAngle.Name = "tbATSDengenAngle";
+            this.tbATSDengenAngle.Size = new System.Drawing.Size(50, 19);
+            this.tbATSDengenAngle.TabIndex = 97;
+            this.tbATSDengenAngle.Text = "155";
+            this.tbATSDengenAngle.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tbATSDengenAngle.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tbATSDengenAngle_KeyDown);
             // 
             // label112
             // 
@@ -2594,6 +2643,8 @@ namespace SELDController
             this.groupBox10.Controls.Add(this.btnBrkNum);
             this.groupBox10.Controls.Add(this.tbBrkSapMinAngl);
             this.groupBox10.Controls.Add(this.tbBrkSapMaxAngl);
+            this.groupBox10.Controls.Add(this.tbAdjEB);
+            this.groupBox10.Controls.Add(this.tbAdjN);
             this.groupBox10.Controls.Add(this.tbBrkNum);
             this.groupBox10.Controls.Add(this.tbEBAngl);
             this.groupBox10.Controls.Add(this.tbChatFilter);
@@ -2637,7 +2688,7 @@ namespace SELDController
             // btnAdjEB
             // 
             this.btnAdjEB.BackColor = System.Drawing.Color.Pink;
-            this.btnAdjEB.Location = new System.Drawing.Point(262, 91);
+            this.btnAdjEB.Location = new System.Drawing.Point(262, 132);
             this.btnAdjEB.Name = "btnAdjEB";
             this.btnAdjEB.Size = new System.Drawing.Size(86, 23);
             this.btnAdjEB.TabIndex = 95;
@@ -2732,6 +2783,28 @@ namespace SELDController
             this.tbBrkSapMaxAngl.Text = "67";
             this.tbBrkSapMaxAngl.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.tbBrkSapMaxAngl.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tbBrkMaxAngl_KeyDown);
+            // 
+            // tbAdjEB
+            // 
+            this.tbAdjEB.Font = new System.Drawing.Font("MS UI Gothic", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.tbAdjEB.Location = new System.Drawing.Point(283, 158);
+            this.tbAdjEB.Name = "tbAdjEB";
+            this.tbAdjEB.Size = new System.Drawing.Size(50, 19);
+            this.tbAdjEB.TabIndex = 30;
+            this.tbAdjEB.Text = "1023";
+            this.tbAdjEB.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tbAdjEB.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tbAdjEB_KeyDown);
+            // 
+            // tbAdjN
+            // 
+            this.tbAdjN.Font = new System.Drawing.Font("MS UI Gothic", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.tbAdjN.Location = new System.Drawing.Point(283, 93);
+            this.tbAdjN.Name = "tbAdjN";
+            this.tbAdjN.Size = new System.Drawing.Size(50, 19);
+            this.tbAdjN.TabIndex = 30;
+            this.tbAdjN.Text = "0";
+            this.tbAdjN.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tbAdjN.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tbAdjN_KeyDown);
             // 
             // tbBrkNum
             // 
@@ -3114,7 +3187,7 @@ namespace SELDController
             this.tpPressTest.Controls.Add(this.tabControl3);
             this.tpPressTest.Location = new System.Drawing.Point(4, 22);
             this.tpPressTest.Name = "tpPressTest";
-            this.tpPressTest.Size = new System.Drawing.Size(1144, 555);
+            this.tpPressTest.Size = new System.Drawing.Size(1149, 555);
             this.tpPressTest.TabIndex = 3;
             this.tpPressTest.Text = "圧力計・制御弁";
             this.tpPressTest.UseVisualStyleBackColor = true;
@@ -5191,7 +5264,7 @@ namespace SELDController
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(1144, 555);
+            this.tabPage2.Size = new System.Drawing.Size(1149, 555);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "通信ログ";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -5257,19 +5330,20 @@ namespace SELDController
             this.tabPage5.Location = new System.Drawing.Point(4, 22);
             this.tabPage5.Name = "tabPage5";
             this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage5.Size = new System.Drawing.Size(1144, 555);
+            this.tabPage5.Size = new System.Drawing.Size(1149, 555);
             this.tabPage5.TabIndex = 4;
             this.tabPage5.Text = "一覧";
             this.tabPage5.UseVisualStyleBackColor = true;
             // 
             // dataGridView1
             // 
+            this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridView1.Location = new System.Drawing.Point(3, 3);
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.RowTemplate.Height = 21;
-            this.dataGridView1.Size = new System.Drawing.Size(1138, 549);
+            this.dataGridView1.Size = new System.Drawing.Size(1143, 549);
             this.dataGridView1.TabIndex = 0;
             // 
             // tpBvePlugin
@@ -5290,7 +5364,7 @@ namespace SELDController
             this.tpBvePlugin.Location = new System.Drawing.Point(4, 22);
             this.tpBvePlugin.Name = "tpBvePlugin";
             this.tpBvePlugin.Padding = new System.Windows.Forms.Padding(3);
-            this.tpBvePlugin.Size = new System.Drawing.Size(1144, 555);
+            this.tpBvePlugin.Size = new System.Drawing.Size(1149, 555);
             this.tpBvePlugin.TabIndex = 5;
             this.tpBvePlugin.Text = "BveEXプラグイン";
             this.tpBvePlugin.UseVisualStyleBackColor = true;
@@ -5432,165 +5506,336 @@ namespace SELDController
             // 
             // tpFirmware
             // 
-            this.tpFirmware.Controls.Add(this.groupBox28);
-            this.tpFirmware.Controls.Add(this.groupBox27);
+            this.tpFirmware.Controls.Add(this.gpbATSP);
+            this.tpFirmware.Controls.Add(this.gpbDispBoard);
+            this.tpFirmware.Controls.Add(this.gpbControllerBoard);
             this.tpFirmware.Controls.Add(this.btnDriverInstall);
             this.tpFirmware.Controls.Add(this.lblArduinoInstall);
             this.tpFirmware.Controls.Add(this.llArduinoIde);
             this.tpFirmware.Location = new System.Drawing.Point(4, 22);
             this.tpFirmware.Name = "tpFirmware";
-            this.tpFirmware.Size = new System.Drawing.Size(1144, 555);
+            this.tpFirmware.Size = new System.Drawing.Size(1149, 555);
             this.tpFirmware.TabIndex = 6;
             this.tpFirmware.Text = "ファームウェア";
             this.tpFirmware.UseVisualStyleBackColor = true;
             // 
-            // groupBox28
+            // gpbATSP
             // 
-            this.groupBox28.Controls.Add(this.cbPortSelectDensei);
-            this.groupBox28.Controls.Add(this.btnOpenDensei);
-            this.groupBox28.Controls.Add(this.button1);
-            this.groupBox28.Controls.Add(this.button2);
-            this.groupBox28.Controls.Add(this.button3);
-            this.groupBox28.Controls.Add(this.button4);
-            this.groupBox28.Controls.Add(this.textBox1);
-            this.groupBox28.Controls.Add(this.button5);
-            this.groupBox28.Controls.Add(this.button6);
-            this.groupBox28.Controls.Add(this.button7);
-            this.groupBox28.Location = new System.Drawing.Point(8, 176);
-            this.groupBox28.Name = "groupBox28";
-            this.groupBox28.Size = new System.Drawing.Size(847, 137);
-            this.groupBox28.TabIndex = 104;
-            this.groupBox28.TabStop = false;
-            this.groupBox28.Text = "Densei 表示灯基板";
-            this.groupBox28.Visible = false;
+            this.gpbATSP.Controls.Add(this.label116);
+            this.gpbATSP.Controls.Add(this.comboBox1);
+            this.gpbATSP.Controls.Add(this.button8);
+            this.gpbATSP.Controls.Add(this.button9);
+            this.gpbATSP.Controls.Add(this.tbATSPBoardVersion);
+            this.gpbATSP.Controls.Add(this.button10);
+            this.gpbATSP.Controls.Add(this.button11);
+            this.gpbATSP.Controls.Add(this.button12);
+            this.gpbATSP.Controls.Add(this.textBox3);
+            this.gpbATSP.Controls.Add(this.button13);
+            this.gpbATSP.Controls.Add(this.button14);
+            this.gpbATSP.Controls.Add(this.button15);
+            this.gpbATSP.Location = new System.Drawing.Point(8, 340);
+            this.gpbATSP.Name = "gpbATSP";
+            this.gpbATSP.Size = new System.Drawing.Size(847, 115);
+            this.gpbATSP.TabIndex = 120;
+            this.gpbATSP.TabStop = false;
+            this.gpbATSP.Text = "ATS-P 表示灯基板";
+            // 
+            // label116
+            // 
+            this.label116.AutoSize = true;
+            this.label116.Location = new System.Drawing.Point(287, 20);
+            this.label116.Name = "label116";
+            this.label116.Size = new System.Drawing.Size(118, 12);
+            this.label116.TabIndex = 106;
+            this.label116.Text = "現在のATS-P基板Ver.";
+            // 
+            // comboBox1
+            // 
+            this.comboBox1.FormattingEnabled = true;
+            this.comboBox1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.comboBox1.Location = new System.Drawing.Point(22, 17);
+            this.comboBox1.Name = "comboBox1";
+            this.comboBox1.Size = new System.Drawing.Size(167, 20);
+            this.comboBox1.TabIndex = 119;
+            this.comboBox1.Visible = false;
+            // 
+            // button8
+            // 
+            this.button8.Location = new System.Drawing.Point(195, 15);
+            this.button8.Name = "button8";
+            this.button8.Size = new System.Drawing.Size(75, 23);
+            this.button8.TabIndex = 118;
+            this.button8.Text = "通信開始";
+            this.button8.UseVisualStyleBackColor = true;
+            this.button8.Visible = false;
+            // 
+            // button9
+            // 
+            this.button9.Enabled = false;
+            this.button9.Location = new System.Drawing.Point(156, 62);
+            this.button9.Name = "button9";
+            this.button9.Size = new System.Drawing.Size(130, 23);
+            this.button9.TabIndex = 101;
+            this.button9.Text = "ファームリカバリ";
+            this.button9.UseVisualStyleBackColor = true;
+            this.button9.Visible = false;
+            // 
+            // tbATSPBoardVersion
+            // 
+            this.tbATSPBoardVersion.Location = new System.Drawing.Point(412, 15);
+            this.tbATSPBoardVersion.Name = "tbATSPBoardVersion";
+            this.tbATSPBoardVersion.Size = new System.Drawing.Size(166, 19);
+            this.tbATSPBoardVersion.TabIndex = 105;
+            // 
+            // button10
+            // 
+            this.button10.Location = new System.Drawing.Point(22, 62);
+            this.button10.Name = "button10";
+            this.button10.Size = new System.Drawing.Size(130, 23);
+            this.button10.TabIndex = 100;
+            this.button10.Text = "ファームバックアップ";
+            this.button10.UseVisualStyleBackColor = true;
+            this.button10.Visible = false;
+            // 
+            // button11
+            // 
+            this.button11.Location = new System.Drawing.Point(760, 38);
+            this.button11.Name = "button11";
+            this.button11.Size = new System.Drawing.Size(75, 23);
+            this.button11.TabIndex = 97;
+            this.button11.Text = "フォルダを開く";
+            this.button11.UseVisualStyleBackColor = true;
+            this.button11.Visible = false;
+            // 
+            // button12
+            // 
+            this.button12.Location = new System.Drawing.Point(679, 38);
+            this.button12.Name = "button12";
+            this.button12.Size = new System.Drawing.Size(75, 23);
+            this.button12.TabIndex = 97;
+            this.button12.Text = "変更";
+            this.button12.UseVisualStyleBackColor = true;
+            this.button12.Visible = false;
+            // 
+            // textBox3
+            // 
+            this.textBox3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox3.Location = new System.Drawing.Point(22, 40);
+            this.textBox3.Name = "textBox3";
+            this.textBox3.Size = new System.Drawing.Size(651, 19);
+            this.textBox3.TabIndex = 96;
+            this.textBox3.Visible = false;
+            // 
+            // button13
+            // 
+            this.button13.Enabled = false;
+            this.button13.Location = new System.Drawing.Point(156, 86);
+            this.button13.Name = "button13";
+            this.button13.Size = new System.Drawing.Size(130, 23);
+            this.button13.TabIndex = 95;
+            this.button13.Text = "EEPROM設定値書込";
+            this.button13.UseVisualStyleBackColor = true;
+            this.button13.Visible = false;
+            // 
+            // button14
+            // 
+            this.button14.Location = new System.Drawing.Point(22, 86);
+            this.button14.Name = "button14";
+            this.button14.Size = new System.Drawing.Size(130, 23);
+            this.button14.TabIndex = 95;
+            this.button14.Text = "EEPROM設定値読出";
+            this.button14.UseVisualStyleBackColor = true;
+            this.button14.Visible = false;
+            // 
+            // button15
+            // 
+            this.button15.Location = new System.Drawing.Point(289, 62);
+            this.button15.Name = "button15";
+            this.button15.Size = new System.Drawing.Size(130, 23);
+            this.button15.TabIndex = 95;
+            this.button15.Text = "ファーム書込";
+            this.button15.UseVisualStyleBackColor = true;
+            this.button15.Visible = false;
+            // 
+            // gpbDispBoard
+            // 
+            this.gpbDispBoard.Controls.Add(this.label115);
+            this.gpbDispBoard.Controls.Add(this.cbPortSelectDensei);
+            this.gpbDispBoard.Controls.Add(this.btnOpenDensei);
+            this.gpbDispBoard.Controls.Add(this.button1);
+            this.gpbDispBoard.Controls.Add(this.tbDispBoardVersion);
+            this.gpbDispBoard.Controls.Add(this.button2);
+            this.gpbDispBoard.Controls.Add(this.button3);
+            this.gpbDispBoard.Controls.Add(this.button4);
+            this.gpbDispBoard.Controls.Add(this.textBox1);
+            this.gpbDispBoard.Controls.Add(this.button5);
+            this.gpbDispBoard.Controls.Add(this.button6);
+            this.gpbDispBoard.Controls.Add(this.button7);
+            this.gpbDispBoard.Location = new System.Drawing.Point(8, 220);
+            this.gpbDispBoard.Name = "gpbDispBoard";
+            this.gpbDispBoard.Size = new System.Drawing.Size(847, 116);
+            this.gpbDispBoard.TabIndex = 104;
+            this.gpbDispBoard.TabStop = false;
+            this.gpbDispBoard.Text = "Densei 表示灯基板";
+            // 
+            // label115
+            // 
+            this.label115.AutoSize = true;
+            this.label115.Location = new System.Drawing.Point(287, 20);
+            this.label115.Name = "label115";
+            this.label115.Size = new System.Drawing.Size(119, 12);
+            this.label115.TabIndex = 106;
+            this.label115.Text = "現在の表示灯基板Ver.";
             // 
             // cbPortSelectDensei
             // 
             this.cbPortSelectDensei.FormattingEnabled = true;
             this.cbPortSelectDensei.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.cbPortSelectDensei.Location = new System.Drawing.Point(22, 25);
+            this.cbPortSelectDensei.Location = new System.Drawing.Point(22, 17);
             this.cbPortSelectDensei.Name = "cbPortSelectDensei";
             this.cbPortSelectDensei.Size = new System.Drawing.Size(167, 20);
             this.cbPortSelectDensei.TabIndex = 119;
+            this.cbPortSelectDensei.Visible = false;
             this.cbPortSelectDensei.MouseHover += new System.EventHandler(this.cbPortSelectDensei_MouseHover);
             // 
             // btnOpenDensei
             // 
-            this.btnOpenDensei.Location = new System.Drawing.Point(195, 23);
+            this.btnOpenDensei.Location = new System.Drawing.Point(195, 15);
             this.btnOpenDensei.Name = "btnOpenDensei";
             this.btnOpenDensei.Size = new System.Drawing.Size(75, 23);
             this.btnOpenDensei.TabIndex = 118;
             this.btnOpenDensei.Text = "通信開始";
             this.btnOpenDensei.UseVisualStyleBackColor = true;
+            this.btnOpenDensei.Visible = false;
             this.btnOpenDensei.Click += new System.EventHandler(this.btnOpenDensei_Click);
             // 
             // button1
             // 
             this.button1.Enabled = false;
-            this.button1.Location = new System.Drawing.Point(156, 76);
+            this.button1.Location = new System.Drawing.Point(156, 60);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(130, 23);
             this.button1.TabIndex = 101;
             this.button1.Text = "ファームリカバリ";
             this.button1.UseVisualStyleBackColor = true;
+            this.button1.Visible = false;
+            // 
+            // tbDispBoardVersion
+            // 
+            this.tbDispBoardVersion.Location = new System.Drawing.Point(412, 15);
+            this.tbDispBoardVersion.Name = "tbDispBoardVersion";
+            this.tbDispBoardVersion.Size = new System.Drawing.Size(166, 19);
+            this.tbDispBoardVersion.TabIndex = 105;
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(22, 76);
+            this.button2.Location = new System.Drawing.Point(22, 60);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(130, 23);
             this.button2.TabIndex = 100;
             this.button2.Text = "ファームバックアップ";
             this.button2.UseVisualStyleBackColor = true;
+            this.button2.Visible = false;
             // 
             // button3
             // 
-            this.button3.Location = new System.Drawing.Point(760, 49);
+            this.button3.Location = new System.Drawing.Point(760, 36);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(75, 23);
             this.button3.TabIndex = 97;
             this.button3.Text = "フォルダを開く";
             this.button3.UseVisualStyleBackColor = true;
+            this.button3.Visible = false;
             // 
             // button4
             // 
-            this.button4.Location = new System.Drawing.Point(679, 49);
+            this.button4.Location = new System.Drawing.Point(679, 36);
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(75, 23);
             this.button4.TabIndex = 97;
             this.button4.Text = "変更";
             this.button4.UseVisualStyleBackColor = true;
+            this.button4.Visible = false;
             // 
             // textBox1
             // 
             this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox1.Location = new System.Drawing.Point(22, 51);
+            this.textBox1.Location = new System.Drawing.Point(22, 38);
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(651, 19);
             this.textBox1.TabIndex = 96;
+            this.textBox1.Visible = false;
             // 
             // button5
             // 
             this.button5.Enabled = false;
-            this.button5.Location = new System.Drawing.Point(156, 105);
+            this.button5.Location = new System.Drawing.Point(156, 84);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(130, 23);
             this.button5.TabIndex = 95;
             this.button5.Text = "EEPROM設定値書込";
             this.button5.UseVisualStyleBackColor = true;
+            this.button5.Visible = false;
             // 
             // button6
             // 
-            this.button6.Location = new System.Drawing.Point(22, 105);
+            this.button6.Location = new System.Drawing.Point(22, 84);
             this.button6.Name = "button6";
             this.button6.Size = new System.Drawing.Size(130, 23);
             this.button6.TabIndex = 95;
             this.button6.Text = "EEPROM設定値読出";
             this.button6.UseVisualStyleBackColor = true;
+            this.button6.Visible = false;
             // 
             // button7
             // 
-            this.button7.Location = new System.Drawing.Point(289, 76);
+            this.button7.Location = new System.Drawing.Point(289, 60);
             this.button7.Name = "button7";
             this.button7.Size = new System.Drawing.Size(130, 23);
             this.button7.TabIndex = 95;
             this.button7.Text = "ファーム書込";
             this.button7.UseVisualStyleBackColor = true;
+            this.button7.Visible = false;
             // 
-            // groupBox27
+            // gpbControllerBoard
             // 
-            this.groupBox27.Controls.Add(this.label114);
-            this.groupBox27.Controls.Add(this.btnFirmRecovery);
-            this.groupBox27.Controls.Add(this.btnFirmBackup);
-            this.groupBox27.Controls.Add(this.btnFirmDirOpen);
-            this.groupBox27.Controls.Add(this.tbControlBoardVersion);
-            this.groupBox27.Controls.Add(this.btnHexFileChange);
-            this.groupBox27.Controls.Add(this.tbHexFilePath);
-            this.groupBox27.Controls.Add(this.btnEepromWrite);
-            this.groupBox27.Controls.Add(this.btnEepromRoad);
-            this.groupBox27.Controls.Add(this.btnFirmUpdate);
-            this.groupBox27.Location = new System.Drawing.Point(8, 44);
-            this.groupBox27.Name = "groupBox27";
-            this.groupBox27.Size = new System.Drawing.Size(847, 126);
-            this.groupBox27.TabIndex = 103;
-            this.groupBox27.TabStop = false;
-            this.groupBox27.Text = "SELD Controller メイン制御基板";
+            this.gpbControllerBoard.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.gpbControllerBoard.Controls.Add(this.cbVersionListCBin);
+            this.gpbControllerBoard.Controls.Add(this.cbVersionListCHex);
+            this.gpbControllerBoard.Controls.Add(this.label114);
+            this.gpbControllerBoard.Controls.Add(this.btnFirmBackup);
+            this.gpbControllerBoard.Controls.Add(this.button17);
+            this.gpbControllerBoard.Controls.Add(this.btnFirmDirOpen);
+            this.gpbControllerBoard.Controls.Add(this.tbControlBoardVersion);
+            this.gpbControllerBoard.Controls.Add(this.button16);
+            this.gpbControllerBoard.Controls.Add(this.btnHexFileChange);
+            this.gpbControllerBoard.Controls.Add(this.tbBinFilePathC);
+            this.gpbControllerBoard.Controls.Add(this.tbHexFilePathC);
+            this.gpbControllerBoard.Controls.Add(this.btnEepromWrite);
+            this.gpbControllerBoard.Controls.Add(this.btnEepromRoad);
+            this.gpbControllerBoard.Controls.Add(this.btnFirmUpdate);
+            this.gpbControllerBoard.Location = new System.Drawing.Point(8, 44);
+            this.gpbControllerBoard.Name = "gpbControllerBoard";
+            this.gpbControllerBoard.Size = new System.Drawing.Size(1133, 166);
+            this.gpbControllerBoard.TabIndex = 103;
+            this.gpbControllerBoard.TabStop = false;
+            this.gpbControllerBoard.Text = "SELD Controller メイン制御基板";
             // 
-            // btnFirmRecovery
+            // label114
             // 
-            this.btnFirmRecovery.Enabled = false;
-            this.btnFirmRecovery.Location = new System.Drawing.Point(156, 70);
-            this.btnFirmRecovery.Name = "btnFirmRecovery";
-            this.btnFirmRecovery.Size = new System.Drawing.Size(130, 23);
-            this.btnFirmRecovery.TabIndex = 101;
-            this.btnFirmRecovery.Text = "ファームリカバリ";
-            this.btnFirmRecovery.UseVisualStyleBackColor = true;
-            this.btnFirmRecovery.Click += new System.EventHandler(this.btnFirmRecovery_Click);
+            this.label114.AutoSize = true;
+            this.label114.Location = new System.Drawing.Point(31, 19);
+            this.label114.Name = "label114";
+            this.label114.Size = new System.Drawing.Size(107, 12);
+            this.label114.TabIndex = 106;
+            this.label114.Text = "現在の制御基板Ver.";
             // 
             // btnFirmBackup
             // 
-            this.btnFirmBackup.Location = new System.Drawing.Point(22, 70);
+            this.btnFirmBackup.Location = new System.Drawing.Point(329, 14);
             this.btnFirmBackup.Name = "btnFirmBackup";
             this.btnFirmBackup.Size = new System.Drawing.Size(130, 23);
             this.btnFirmBackup.TabIndex = 100;
@@ -5600,7 +5845,7 @@ namespace SELDController
             // 
             // btnFirmDirOpen
             // 
-            this.btnFirmDirOpen.Location = new System.Drawing.Point(760, 43);
+            this.btnFirmDirOpen.Location = new System.Drawing.Point(33, 63);
             this.btnFirmDirOpen.Name = "btnFirmDirOpen";
             this.btnFirmDirOpen.Size = new System.Drawing.Size(75, 23);
             this.btnFirmDirOpen.TabIndex = 97;
@@ -5608,29 +5853,36 @@ namespace SELDController
             this.btnFirmDirOpen.UseVisualStyleBackColor = true;
             this.btnFirmDirOpen.Click += new System.EventHandler(this.btnFirmDirOpen_Click);
             // 
+            // tbControlBoardVersion
+            // 
+            this.tbControlBoardVersion.Location = new System.Drawing.Point(156, 16);
+            this.tbControlBoardVersion.Name = "tbControlBoardVersion";
+            this.tbControlBoardVersion.Size = new System.Drawing.Size(166, 19);
+            this.tbControlBoardVersion.TabIndex = 105;
+            // 
             // btnHexFileChange
             // 
-            this.btnHexFileChange.Location = new System.Drawing.Point(679, 43);
+            this.btnHexFileChange.Location = new System.Drawing.Point(112, 63);
             this.btnHexFileChange.Name = "btnHexFileChange";
-            this.btnHexFileChange.Size = new System.Drawing.Size(75, 23);
+            this.btnHexFileChange.Size = new System.Drawing.Size(39, 23);
             this.btnHexFileChange.TabIndex = 97;
             this.btnHexFileChange.Text = "変更";
             this.btnHexFileChange.UseVisualStyleBackColor = true;
             this.btnHexFileChange.Click += new System.EventHandler(this.btnHexFileChange_Click);
             // 
-            // tbHexFilePath
+            // tbHexFilePathC
             // 
-            this.tbHexFilePath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.tbHexFilePathC.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.tbHexFilePath.Location = new System.Drawing.Point(22, 45);
-            this.tbHexFilePath.Name = "tbHexFilePath";
-            this.tbHexFilePath.Size = new System.Drawing.Size(651, 19);
-            this.tbHexFilePath.TabIndex = 96;
+            this.tbHexFilePathC.Location = new System.Drawing.Point(156, 65);
+            this.tbHexFilePathC.Name = "tbHexFilePathC";
+            this.tbHexFilePathC.Size = new System.Drawing.Size(971, 19);
+            this.tbHexFilePathC.TabIndex = 96;
             // 
             // btnEepromWrite
             // 
             this.btnEepromWrite.Enabled = false;
-            this.btnEepromWrite.Location = new System.Drawing.Point(156, 99);
+            this.btnEepromWrite.Location = new System.Drawing.Point(329, 113);
             this.btnEepromWrite.Name = "btnEepromWrite";
             this.btnEepromWrite.Size = new System.Drawing.Size(130, 23);
             this.btnEepromWrite.TabIndex = 95;
@@ -5640,7 +5892,7 @@ namespace SELDController
             // 
             // btnEepromRoad
             // 
-            this.btnEepromRoad.Location = new System.Drawing.Point(22, 99);
+            this.btnEepromRoad.Location = new System.Drawing.Point(329, 88);
             this.btnEepromRoad.Name = "btnEepromRoad";
             this.btnEepromRoad.Size = new System.Drawing.Size(130, 23);
             this.btnEepromRoad.TabIndex = 95;
@@ -5650,7 +5902,7 @@ namespace SELDController
             // 
             // btnFirmUpdate
             // 
-            this.btnFirmUpdate.Location = new System.Drawing.Point(289, 70);
+            this.btnFirmUpdate.Location = new System.Drawing.Point(329, 39);
             this.btnFirmUpdate.Name = "btnFirmUpdate";
             this.btnFirmUpdate.Size = new System.Drawing.Size(130, 23);
             this.btnFirmUpdate.TabIndex = 95;
@@ -5696,7 +5948,7 @@ namespace SELDController
             this.tpExtra.Controls.Add(this.label110);
             this.tpExtra.Location = new System.Drawing.Point(4, 22);
             this.tpExtra.Name = "tpExtra";
-            this.tpExtra.Size = new System.Drawing.Size(1144, 555);
+            this.tpExtra.Size = new System.Drawing.Size(1149, 555);
             this.tpExtra.TabIndex = 7;
             this.tpExtra.Text = "その他";
             this.tpExtra.UseVisualStyleBackColor = true;
@@ -5740,7 +5992,7 @@ namespace SELDController
             this.tsslError});
             this.statusStrip1.Location = new System.Drawing.Point(0, 789);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(1164, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(1169, 22);
             this.statusStrip1.TabIndex = 65;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -5767,7 +6019,7 @@ namespace SELDController
             // btnBrkMinus
             // 
             this.btnBrkMinus.Font = new System.Drawing.Font("MS UI Gothic", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.btnBrkMinus.Location = new System.Drawing.Point(703, 29);
+            this.btnBrkMinus.Location = new System.Drawing.Point(773, 29);
             this.btnBrkMinus.Name = "btnBrkMinus";
             this.btnBrkMinus.Size = new System.Drawing.Size(27, 31);
             this.btnBrkMinus.TabIndex = 79;
@@ -5778,7 +6030,7 @@ namespace SELDController
             // btnBrkPlus
             // 
             this.btnBrkPlus.Font = new System.Drawing.Font("MS UI Gothic", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.btnBrkPlus.Location = new System.Drawing.Point(786, 29);
+            this.btnBrkPlus.Location = new System.Drawing.Point(856, 29);
             this.btnBrkPlus.Name = "btnBrkPlus";
             this.btnBrkPlus.Size = new System.Drawing.Size(27, 31);
             this.btnBrkPlus.TabIndex = 79;
@@ -5789,7 +6041,7 @@ namespace SELDController
             // tbBrkNumTop
             // 
             this.tbBrkNumTop.Font = new System.Drawing.Font("MS UI Gothic", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.tbBrkNumTop.Location = new System.Drawing.Point(732, 29);
+            this.tbBrkNumTop.Location = new System.Drawing.Point(802, 29);
             this.tbBrkNumTop.Name = "tbBrkNumTop";
             this.tbBrkNumTop.Size = new System.Drawing.Size(52, 31);
             this.tbBrkNumTop.TabIndex = 30;
@@ -5801,7 +6053,7 @@ namespace SELDController
             // 
             this.lblBrkSetTop.AutoSize = true;
             this.lblBrkSetTop.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.lblBrkSetTop.Location = new System.Drawing.Point(469, 37);
+            this.lblBrkSetTop.Location = new System.Drawing.Point(542, 37);
             this.lblBrkSetTop.Name = "lblBrkSetTop";
             this.lblBrkSetTop.Size = new System.Drawing.Size(113, 19);
             this.lblBrkSetTop.TabIndex = 80;
@@ -5810,7 +6062,7 @@ namespace SELDController
             // btnBve5Start
             // 
             this.btnBve5Start.Font = new System.Drawing.Font("MS UI Gothic", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.btnBve5Start.Location = new System.Drawing.Point(819, 29);
+            this.btnBve5Start.Location = new System.Drawing.Point(889, 29);
             this.btnBve5Start.Name = "btnBve5Start";
             this.btnBve5Start.Size = new System.Drawing.Size(125, 47);
             this.btnBve5Start.TabIndex = 81;
@@ -5821,7 +6073,7 @@ namespace SELDController
             // tbMcNumTop
             // 
             this.tbMcNumTop.Font = new System.Drawing.Font("MS UI Gothic", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.tbMcNumTop.Location = new System.Drawing.Point(732, 96);
+            this.tbMcNumTop.Location = new System.Drawing.Point(802, 96);
             this.tbMcNumTop.Name = "tbMcNumTop";
             this.tbMcNumTop.Size = new System.Drawing.Size(52, 31);
             this.tbMcNumTop.TabIndex = 30;
@@ -5832,7 +6084,7 @@ namespace SELDController
             // btnMcMinus
             // 
             this.btnMcMinus.Font = new System.Drawing.Font("MS UI Gothic", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.btnMcMinus.Location = new System.Drawing.Point(703, 96);
+            this.btnMcMinus.Location = new System.Drawing.Point(773, 96);
             this.btnMcMinus.Name = "btnMcMinus";
             this.btnMcMinus.Size = new System.Drawing.Size(27, 31);
             this.btnMcMinus.TabIndex = 79;
@@ -5843,7 +6095,7 @@ namespace SELDController
             // btnMcPlus
             // 
             this.btnMcPlus.Font = new System.Drawing.Font("MS UI Gothic", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.btnMcPlus.Location = new System.Drawing.Point(786, 96);
+            this.btnMcPlus.Location = new System.Drawing.Point(856, 96);
             this.btnMcPlus.Name = "btnMcPlus";
             this.btnMcPlus.Size = new System.Drawing.Size(27, 31);
             this.btnMcPlus.TabIndex = 79;
@@ -5855,7 +6107,7 @@ namespace SELDController
             // 
             this.label12.AutoSize = true;
             this.label12.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.label12.Location = new System.Drawing.Point(469, 104);
+            this.label12.Location = new System.Drawing.Point(542, 104);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(201, 19);
             this.label12.TabIndex = 80;
@@ -5864,7 +6116,7 @@ namespace SELDController
             // btnBve6Start
             // 
             this.btnBve6Start.Font = new System.Drawing.Font("MS UI Gothic", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.btnBve6Start.Location = new System.Drawing.Point(819, 80);
+            this.btnBve6Start.Location = new System.Drawing.Point(889, 80);
             this.btnBve6Start.Name = "btnBve6Start";
             this.btnBve6Start.Size = new System.Drawing.Size(125, 47);
             this.btnBve6Start.TabIndex = 81;
@@ -5875,7 +6127,7 @@ namespace SELDController
             // tbMcNumMaxTop
             // 
             this.tbMcNumMaxTop.Font = new System.Drawing.Font("MS UI Gothic", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.tbMcNumMaxTop.Location = new System.Drawing.Point(732, 63);
+            this.tbMcNumMaxTop.Location = new System.Drawing.Point(802, 63);
             this.tbMcNumMaxTop.Name = "tbMcNumMaxTop";
             this.tbMcNumMaxTop.Size = new System.Drawing.Size(52, 31);
             this.tbMcNumMaxTop.TabIndex = 30;
@@ -5886,7 +6138,7 @@ namespace SELDController
             // btnMcMaxMinus
             // 
             this.btnMcMaxMinus.Font = new System.Drawing.Font("MS UI Gothic", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.btnMcMaxMinus.Location = new System.Drawing.Point(703, 63);
+            this.btnMcMaxMinus.Location = new System.Drawing.Point(773, 63);
             this.btnMcMaxMinus.Name = "btnMcMaxMinus";
             this.btnMcMaxMinus.Size = new System.Drawing.Size(27, 31);
             this.btnMcMaxMinus.TabIndex = 79;
@@ -5897,7 +6149,7 @@ namespace SELDController
             // btnMcMaxPlus
             // 
             this.btnMcMaxPlus.Font = new System.Drawing.Font("MS UI Gothic", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.btnMcMaxPlus.Location = new System.Drawing.Point(786, 63);
+            this.btnMcMaxPlus.Location = new System.Drawing.Point(856, 63);
             this.btnMcMaxPlus.Name = "btnMcMaxPlus";
             this.btnMcMaxPlus.Size = new System.Drawing.Size(27, 31);
             this.btnMcMaxPlus.TabIndex = 79;
@@ -5909,7 +6161,7 @@ namespace SELDController
             // 
             this.label13.AutoSize = true;
             this.label13.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.label13.Location = new System.Drawing.Point(469, 71);
+            this.label13.Location = new System.Drawing.Point(542, 71);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(229, 19);
             this.label13.TabIndex = 80;
@@ -5920,7 +6172,7 @@ namespace SELDController
             this.btnSetReadAll.BackColor = System.Drawing.SystemColors.Control;
             this.btnSetReadAll.Enabled = false;
             this.btnSetReadAll.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.btnSetReadAll.Location = new System.Drawing.Point(351, 41);
+            this.btnSetReadAll.Location = new System.Drawing.Point(346, 41);
             this.btnSetReadAll.Name = "btnSetReadAll";
             this.btnSetReadAll.Size = new System.Drawing.Size(112, 35);
             this.btnSetReadAll.TabIndex = 92;
@@ -5933,7 +6185,7 @@ namespace SELDController
             this.btnSetSaveAll.BackColor = System.Drawing.SystemColors.Control;
             this.btnSetSaveAll.Enabled = false;
             this.btnSetSaveAll.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.btnSetSaveAll.Location = new System.Drawing.Point(351, 83);
+            this.btnSetSaveAll.Location = new System.Drawing.Point(346, 83);
             this.btnSetSaveAll.Name = "btnSetSaveAll";
             this.btnSetSaveAll.Size = new System.Drawing.Size(112, 35);
             this.btnSetSaveAll.TabIndex = 91;
@@ -5947,7 +6199,7 @@ namespace SELDController
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tbSerialSend.Location = new System.Drawing.Point(79, 718);
             this.tbSerialSend.Name = "tbSerialSend";
-            this.tbSerialSend.Size = new System.Drawing.Size(1076, 19);
+            this.tbSerialSend.Size = new System.Drawing.Size(1081, 19);
             this.tbSerialSend.TabIndex = 52;
             // 
             // label54
@@ -5984,7 +6236,7 @@ namespace SELDController
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tbSerialRcv2.Location = new System.Drawing.Point(79, 767);
             this.tbSerialRcv2.Name = "tbSerialRcv2";
-            this.tbSerialRcv2.Size = new System.Drawing.Size(1076, 19);
+            this.tbSerialRcv2.Size = new System.Drawing.Size(1081, 19);
             this.tbSerialRcv2.TabIndex = 52;
             this.tbSerialRcv2.Visible = false;
             // 
@@ -6004,7 +6256,7 @@ namespace SELDController
             // 
             this.cbTS185.AutoSize = true;
             this.cbTS185.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.cbTS185.Location = new System.Drawing.Point(980, 79);
+            this.cbTS185.Location = new System.Drawing.Point(1050, 79);
             this.cbTS185.Name = "cbTS185";
             this.cbTS185.Size = new System.Drawing.Size(80, 23);
             this.cbTS185.TabIndex = 79;
@@ -6016,7 +6268,7 @@ namespace SELDController
             // btnJreTsStart
             // 
             this.btnJreTsStart.Font = new System.Drawing.Font("MS UI Gothic", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.btnJreTsStart.Location = new System.Drawing.Point(951, 29);
+            this.btnJreTsStart.Location = new System.Drawing.Point(1021, 29);
             this.btnJreTsStart.Name = "btnJreTsStart";
             this.btnJreTsStart.Size = new System.Drawing.Size(141, 47);
             this.btnJreTsStart.TabIndex = 94;
@@ -6027,7 +6279,7 @@ namespace SELDController
             // label109
             // 
             this.label109.AutoSize = true;
-            this.label109.Location = new System.Drawing.Point(971, 104);
+            this.label109.Location = new System.Drawing.Point(1041, 104);
             this.label109.Name = "label109";
             this.label109.Size = new System.Drawing.Size(121, 24);
             this.label109.TabIndex = 79;
@@ -6038,27 +6290,102 @@ namespace SELDController
             this.serialPortDensei.BaudRate = 115200;
             this.serialPortDensei.WriteTimeout = 1000;
             // 
-            // label114
+            // timerDispBoardFinder
             // 
-            this.label114.AutoSize = true;
-            this.label114.Location = new System.Drawing.Point(21, 25);
-            this.label114.Name = "label114";
-            this.label114.Size = new System.Drawing.Size(107, 12);
-            this.label114.TabIndex = 106;
-            this.label114.Text = "現在の制御基板Ver.";
+            this.timerDispBoardFinder.Interval = 500;
+            this.timerDispBoardFinder.Tick += new System.EventHandler(this.timerDispBoardFinder_Tick);
             // 
-            // tbControlBoardVersion
+            // timerATSPBoardFinder
             // 
-            this.tbControlBoardVersion.Location = new System.Drawing.Point(134, 20);
-            this.tbControlBoardVersion.Name = "tbControlBoardVersion";
-            this.tbControlBoardVersion.Size = new System.Drawing.Size(166, 19);
-            this.tbControlBoardVersion.TabIndex = 105;
+            this.timerATSPBoardFinder.Tick += new System.EventHandler(this.timerATSPBoardFinder_Tick);
+            // 
+            // btnSaveParamXml
+            // 
+            this.btnSaveParamXml.BackColor = System.Drawing.SystemColors.Control;
+            this.btnSaveParamXml.Enabled = false;
+            this.btnSaveParamXml.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.btnSaveParamXml.Location = new System.Drawing.Point(460, 83);
+            this.btnSaveParamXml.Name = "btnSaveParamXml";
+            this.btnSaveParamXml.Size = new System.Drawing.Size(82, 35);
+            this.btnSaveParamXml.TabIndex = 95;
+            this.btnSaveParamXml.Text = "XML保存";
+            this.btnSaveParamXml.UseVisualStyleBackColor = false;
+            this.btnSaveParamXml.Click += new System.EventHandler(this.btnSaveParamXml_Click);
+            // 
+            // btnLoadParamXml
+            // 
+            this.btnLoadParamXml.BackColor = System.Drawing.SystemColors.Control;
+            this.btnLoadParamXml.Enabled = false;
+            this.btnLoadParamXml.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.btnLoadParamXml.Location = new System.Drawing.Point(460, 41);
+            this.btnLoadParamXml.Name = "btnLoadParamXml";
+            this.btnLoadParamXml.Size = new System.Drawing.Size(82, 35);
+            this.btnLoadParamXml.TabIndex = 95;
+            this.btnLoadParamXml.Text = "XML読込";
+            this.btnLoadParamXml.UseVisualStyleBackColor = false;
+            this.btnLoadParamXml.Click += new System.EventHandler(this.btnLoadParamXml_Click);
+            // 
+            // serialPortChecker
+            // 
+            this.serialPortChecker.Interval = 500;
+            this.serialPortChecker.Tick += new System.EventHandler(this.serialPortChecker_Tick);
+            // 
+            // cbVersionListCHex
+            // 
+            this.cbVersionListCHex.FormattingEnabled = true;
+            this.cbVersionListCHex.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.cbVersionListCHex.Location = new System.Drawing.Point(156, 39);
+            this.cbVersionListCHex.Name = "cbVersionListCHex";
+            this.cbVersionListCHex.Size = new System.Drawing.Size(167, 20);
+            this.cbVersionListCHex.TabIndex = 120;
+            this.cbVersionListCHex.SelectedIndexChanged += new System.EventHandler(this.cbVersionList_SelectedIndexChanged);
+            // 
+            // cbVersionListCBin
+            // 
+            this.cbVersionListCBin.FormattingEnabled = true;
+            this.cbVersionListCBin.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.cbVersionListCBin.Location = new System.Drawing.Point(156, 113);
+            this.cbVersionListCBin.Name = "cbVersionListCBin";
+            this.cbVersionListCBin.Size = new System.Drawing.Size(167, 20);
+            this.cbVersionListCBin.TabIndex = 120;
+            this.cbVersionListCBin.SelectedIndexChanged += new System.EventHandler(this.cbVersionList_SelectedIndexChanged);
+            // 
+            // tbBinFilePathC
+            // 
+            this.tbBinFilePathC.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tbBinFilePathC.Location = new System.Drawing.Point(156, 139);
+            this.tbBinFilePathC.Name = "tbBinFilePathC";
+            this.tbBinFilePathC.Size = new System.Drawing.Size(971, 19);
+            this.tbBinFilePathC.TabIndex = 96;
+            // 
+            // button16
+            // 
+            this.button16.Location = new System.Drawing.Point(112, 138);
+            this.button16.Name = "button16";
+            this.button16.Size = new System.Drawing.Size(39, 23);
+            this.button16.TabIndex = 97;
+            this.button16.Text = "変更";
+            this.button16.UseVisualStyleBackColor = true;
+            this.button16.Click += new System.EventHandler(this.btnHexFileChange_Click);
+            // 
+            // button17
+            // 
+            this.button17.Location = new System.Drawing.Point(33, 138);
+            this.button17.Name = "button17";
+            this.button17.Size = new System.Drawing.Size(75, 23);
+            this.button17.TabIndex = 97;
+            this.button17.Text = "フォルダを開く";
+            this.button17.UseVisualStyleBackColor = true;
+            this.button17.Click += new System.EventHandler(this.btnFirmDirOpen_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1164, 811);
+            this.ClientSize = new System.Drawing.Size(1169, 811);
+            this.Controls.Add(this.btnLoadParamXml);
+            this.Controls.Add(this.btnSaveParamXml);
             this.Controls.Add(this.label109);
             this.Controls.Add(this.btnJreTsStart);
             this.Controls.Add(this.label57);
@@ -6204,18 +6531,18 @@ namespace SELDController
             this.tpBvePlugin.PerformLayout();
             this.tpFirmware.ResumeLayout(false);
             this.tpFirmware.PerformLayout();
-            this.groupBox28.ResumeLayout(false);
-            this.groupBox28.PerformLayout();
-            this.groupBox27.ResumeLayout(false);
-            this.groupBox27.PerformLayout();
+            this.gpbATSP.ResumeLayout(false);
+            this.gpbATSP.PerformLayout();
+            this.gpbDispBoard.ResumeLayout(false);
+            this.gpbDispBoard.PerformLayout();
+            this.gpbControllerBoard.ResumeLayout(false);
+            this.gpbControllerBoard.PerformLayout();
             this.tpExtra.ResumeLayout(false);
             this.tpExtra.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.paramsBindingSource)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.paramDataBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -6500,8 +6827,6 @@ namespace SELDController
         private System.Windows.Forms.DataGridViewTextBoxColumn nameDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridView dataGridView1;
-        private System.Windows.Forms.BindingSource paramsBindingSource;
-        private System.Windows.Forms.BindingSource paramDataBindingSource;
         private System.Windows.Forms.Label label55;
         private System.Windows.Forms.TextBox tbEB;
         private System.Windows.Forms.TextBox tbP;
@@ -6671,20 +6996,19 @@ namespace SELDController
         private System.Windows.Forms.Button btnFirmUpdate;
         private System.Windows.Forms.TabPage tpFirmware;
         private System.Windows.Forms.Button btnHexFileChange;
-        private System.Windows.Forms.TextBox tbHexFilePath;
+        private System.Windows.Forms.TextBox tbHexFilePathC;
         private System.Windows.Forms.LinkLabel llArduinoIde;
         private System.Windows.Forms.Label lblArduinoInstall;
         private System.Windows.Forms.Button btnEepromRoad;
         private System.Windows.Forms.Button btnEepromWrite;
         private System.Windows.Forms.Button btnFirmDirOpen;
-        private System.Windows.Forms.Button btnFirmRecovery;
         private System.Windows.Forms.Button btnFirmBackup;
         private System.Windows.Forms.Button btnBveExDirOpen;
         private System.Windows.Forms.TabPage tpExtra;
         private System.Windows.Forms.Label label110;
         private System.Windows.Forms.Button btnDriverInstall;
-        private System.Windows.Forms.GroupBox groupBox27;
-        private System.Windows.Forms.GroupBox groupBox28;
+        private System.Windows.Forms.GroupBox gpbControllerBoard;
+        private System.Windows.Forms.GroupBox gpbDispBoard;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button3;
@@ -6708,13 +7032,42 @@ namespace SELDController
         private System.Windows.Forms.ComboBox cbxB1Dengen;
         private System.Windows.Forms.Label label112;
         private System.Windows.Forms.ComboBox cbxATSDengen;
-        private System.Windows.Forms.Button btnATSDengen;
-        private System.Windows.Forms.TextBox tbATSDengen;
+        private System.Windows.Forms.Button btnATSDengenAngle;
+        private System.Windows.Forms.TextBox tbATSDengenAngle;
         private System.Windows.Forms.Label label113;
         private System.Windows.Forms.TextBox tbAtsPDengenTounyuTime;
         private System.Windows.Forms.CheckBox cbAtsActiveMode;
         private System.Windows.Forms.Label label114;
         private System.Windows.Forms.TextBox tbControlBoardVersion;
+        private System.Windows.Forms.Label label115;
+        private System.Windows.Forms.TextBox tbDispBoardVersion;
+        private System.Windows.Forms.Timer timerDispBoardFinder;
+        private System.Windows.Forms.GroupBox gpbATSP;
+        private System.Windows.Forms.Label label116;
+        private System.Windows.Forms.ComboBox comboBox1;
+        private System.Windows.Forms.Button button8;
+        private System.Windows.Forms.Button button9;
+        private System.Windows.Forms.TextBox tbATSPBoardVersion;
+        private System.Windows.Forms.Button button10;
+        private System.Windows.Forms.Button button11;
+        private System.Windows.Forms.Button button12;
+        private System.Windows.Forms.TextBox textBox3;
+        private System.Windows.Forms.Button button13;
+        private System.Windows.Forms.Button button14;
+        private System.Windows.Forms.Button button15;
+        private System.Windows.Forms.Timer timerATSPBoardFinder;
+        private System.Windows.Forms.CheckBox cbTransferEBState;
+        private System.Windows.Forms.CheckBox cbBVEForceMode;
+        private System.Windows.Forms.Button btnSaveParamXml;
+        private System.Windows.Forms.Button btnLoadParamXml;
+        private System.Windows.Forms.Timer serialPortChecker;
+        private System.Windows.Forms.TextBox tbAdjEB;
+        private System.Windows.Forms.TextBox tbAdjN;
+        private System.Windows.Forms.ComboBox cbVersionListCHex;
+        private System.Windows.Forms.ComboBox cbVersionListCBin;
+        private System.Windows.Forms.TextBox tbBinFilePathC;
+        private System.Windows.Forms.Button button17;
+        private System.Windows.Forms.Button button16;
     }
 }
 
