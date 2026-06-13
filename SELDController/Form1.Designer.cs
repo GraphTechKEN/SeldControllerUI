@@ -485,11 +485,16 @@ namespace SELDController
             this.button6 = new System.Windows.Forms.Button();
             this.button7 = new System.Windows.Forms.Button();
             this.gpbControllerBoard = new System.Windows.Forms.GroupBox();
+            this.cbVersionListCBin = new System.Windows.Forms.ComboBox();
+            this.cbVersionListCHex = new System.Windows.Forms.ComboBox();
             this.label114 = new System.Windows.Forms.Label();
             this.btnFirmBackup = new System.Windows.Forms.Button();
-            this.btnFirmDirOpen = new System.Windows.Forms.Button();
+            this.btnFirmDirOpenBin = new System.Windows.Forms.Button();
+            this.btnFirmDirOpenHex = new System.Windows.Forms.Button();
             this.tbControlBoardVersion = new System.Windows.Forms.TextBox();
+            this.btnBinFileChange = new System.Windows.Forms.Button();
             this.btnHexFileChange = new System.Windows.Forms.Button();
+            this.tbBinFilePathC = new System.Windows.Forms.TextBox();
             this.tbHexFilePathC = new System.Windows.Forms.TextBox();
             this.btnEepromWrite = new System.Windows.Forms.Button();
             this.btnEepromRoad = new System.Windows.Forms.Button();
@@ -537,11 +542,6 @@ namespace SELDController
             this.btnSaveParamXml = new System.Windows.Forms.Button();
             this.btnLoadParamXml = new System.Windows.Forms.Button();
             this.serialPortChecker = new System.Windows.Forms.Timer(this.components);
-            this.cbVersionListCHex = new System.Windows.Forms.ComboBox();
-            this.cbVersionListCBin = new System.Windows.Forms.ComboBox();
-            this.tbBinFilePathC = new System.Windows.Forms.TextBox();
-            this.button16 = new System.Windows.Forms.Button();
-            this.button17 = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -5807,10 +5807,10 @@ namespace SELDController
             this.gpbControllerBoard.Controls.Add(this.cbVersionListCHex);
             this.gpbControllerBoard.Controls.Add(this.label114);
             this.gpbControllerBoard.Controls.Add(this.btnFirmBackup);
-            this.gpbControllerBoard.Controls.Add(this.button17);
-            this.gpbControllerBoard.Controls.Add(this.btnFirmDirOpen);
+            this.gpbControllerBoard.Controls.Add(this.btnFirmDirOpenBin);
+            this.gpbControllerBoard.Controls.Add(this.btnFirmDirOpenHex);
             this.gpbControllerBoard.Controls.Add(this.tbControlBoardVersion);
-            this.gpbControllerBoard.Controls.Add(this.button16);
+            this.gpbControllerBoard.Controls.Add(this.btnBinFileChange);
             this.gpbControllerBoard.Controls.Add(this.btnHexFileChange);
             this.gpbControllerBoard.Controls.Add(this.tbBinFilePathC);
             this.gpbControllerBoard.Controls.Add(this.tbHexFilePathC);
@@ -5823,6 +5823,26 @@ namespace SELDController
             this.gpbControllerBoard.TabIndex = 103;
             this.gpbControllerBoard.TabStop = false;
             this.gpbControllerBoard.Text = "SELD Controller メイン制御基板";
+            // 
+            // cbVersionListCBin
+            // 
+            this.cbVersionListCBin.FormattingEnabled = true;
+            this.cbVersionListCBin.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.cbVersionListCBin.Location = new System.Drawing.Point(156, 113);
+            this.cbVersionListCBin.Name = "cbVersionListCBin";
+            this.cbVersionListCBin.Size = new System.Drawing.Size(167, 20);
+            this.cbVersionListCBin.TabIndex = 120;
+            this.cbVersionListCBin.SelectedIndexChanged += new System.EventHandler(this.cbVersionListCBin_SelectedIndexChanged);
+            // 
+            // cbVersionListCHex
+            // 
+            this.cbVersionListCHex.FormattingEnabled = true;
+            this.cbVersionListCHex.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.cbVersionListCHex.Location = new System.Drawing.Point(156, 39);
+            this.cbVersionListCHex.Name = "cbVersionListCHex";
+            this.cbVersionListCHex.Size = new System.Drawing.Size(167, 20);
+            this.cbVersionListCHex.TabIndex = 120;
+            this.cbVersionListCHex.SelectedIndexChanged += new System.EventHandler(this.cbVersionList_SelectedIndexChanged);
             // 
             // label114
             // 
@@ -5843,15 +5863,25 @@ namespace SELDController
             this.btnFirmBackup.UseVisualStyleBackColor = true;
             this.btnFirmBackup.Click += new System.EventHandler(this.btnFirmRoad_Click);
             // 
-            // btnFirmDirOpen
+            // btnFirmDirOpenBin
             // 
-            this.btnFirmDirOpen.Location = new System.Drawing.Point(33, 63);
-            this.btnFirmDirOpen.Name = "btnFirmDirOpen";
-            this.btnFirmDirOpen.Size = new System.Drawing.Size(75, 23);
-            this.btnFirmDirOpen.TabIndex = 97;
-            this.btnFirmDirOpen.Text = "フォルダを開く";
-            this.btnFirmDirOpen.UseVisualStyleBackColor = true;
-            this.btnFirmDirOpen.Click += new System.EventHandler(this.btnFirmDirOpen_Click);
+            this.btnFirmDirOpenBin.Location = new System.Drawing.Point(33, 138);
+            this.btnFirmDirOpenBin.Name = "btnFirmDirOpenBin";
+            this.btnFirmDirOpenBin.Size = new System.Drawing.Size(75, 23);
+            this.btnFirmDirOpenBin.TabIndex = 97;
+            this.btnFirmDirOpenBin.Text = "フォルダを開く";
+            this.btnFirmDirOpenBin.UseVisualStyleBackColor = true;
+            this.btnFirmDirOpenBin.Click += new System.EventHandler(this.btnFirmDirOpenBin_Click);
+            // 
+            // btnFirmDirOpenHex
+            // 
+            this.btnFirmDirOpenHex.Location = new System.Drawing.Point(33, 63);
+            this.btnFirmDirOpenHex.Name = "btnFirmDirOpenHex";
+            this.btnFirmDirOpenHex.Size = new System.Drawing.Size(75, 23);
+            this.btnFirmDirOpenHex.TabIndex = 97;
+            this.btnFirmDirOpenHex.Text = "フォルダを開く";
+            this.btnFirmDirOpenHex.UseVisualStyleBackColor = true;
+            this.btnFirmDirOpenHex.Click += new System.EventHandler(this.btnFirmDirOpen_Click);
             // 
             // tbControlBoardVersion
             // 
@@ -5859,6 +5889,16 @@ namespace SELDController
             this.tbControlBoardVersion.Name = "tbControlBoardVersion";
             this.tbControlBoardVersion.Size = new System.Drawing.Size(166, 19);
             this.tbControlBoardVersion.TabIndex = 105;
+            // 
+            // btnBinFileChange
+            // 
+            this.btnBinFileChange.Location = new System.Drawing.Point(112, 138);
+            this.btnBinFileChange.Name = "btnBinFileChange";
+            this.btnBinFileChange.Size = new System.Drawing.Size(39, 23);
+            this.btnBinFileChange.TabIndex = 97;
+            this.btnBinFileChange.Text = "変更";
+            this.btnBinFileChange.UseVisualStyleBackColor = true;
+            this.btnBinFileChange.Click += new System.EventHandler(this.btnBinFileChange_Click);
             // 
             // btnHexFileChange
             // 
@@ -5869,6 +5909,15 @@ namespace SELDController
             this.btnHexFileChange.Text = "変更";
             this.btnHexFileChange.UseVisualStyleBackColor = true;
             this.btnHexFileChange.Click += new System.EventHandler(this.btnHexFileChange_Click);
+            // 
+            // tbBinFilePathC
+            // 
+            this.tbBinFilePathC.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tbBinFilePathC.Location = new System.Drawing.Point(156, 139);
+            this.tbBinFilePathC.Name = "tbBinFilePathC";
+            this.tbBinFilePathC.Size = new System.Drawing.Size(971, 19);
+            this.tbBinFilePathC.TabIndex = 96;
             // 
             // tbHexFilePathC
             // 
@@ -5881,7 +5930,6 @@ namespace SELDController
             // 
             // btnEepromWrite
             // 
-            this.btnEepromWrite.Enabled = false;
             this.btnEepromWrite.Location = new System.Drawing.Point(329, 113);
             this.btnEepromWrite.Name = "btnEepromWrite";
             this.btnEepromWrite.Size = new System.Drawing.Size(130, 23);
@@ -6329,55 +6377,6 @@ namespace SELDController
             // 
             this.serialPortChecker.Interval = 500;
             this.serialPortChecker.Tick += new System.EventHandler(this.serialPortChecker_Tick);
-            // 
-            // cbVersionListCHex
-            // 
-            this.cbVersionListCHex.FormattingEnabled = true;
-            this.cbVersionListCHex.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.cbVersionListCHex.Location = new System.Drawing.Point(156, 39);
-            this.cbVersionListCHex.Name = "cbVersionListCHex";
-            this.cbVersionListCHex.Size = new System.Drawing.Size(167, 20);
-            this.cbVersionListCHex.TabIndex = 120;
-            this.cbVersionListCHex.SelectedIndexChanged += new System.EventHandler(this.cbVersionList_SelectedIndexChanged);
-            // 
-            // cbVersionListCBin
-            // 
-            this.cbVersionListCBin.FormattingEnabled = true;
-            this.cbVersionListCBin.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.cbVersionListCBin.Location = new System.Drawing.Point(156, 113);
-            this.cbVersionListCBin.Name = "cbVersionListCBin";
-            this.cbVersionListCBin.Size = new System.Drawing.Size(167, 20);
-            this.cbVersionListCBin.TabIndex = 120;
-            this.cbVersionListCBin.SelectedIndexChanged += new System.EventHandler(this.cbVersionList_SelectedIndexChanged);
-            // 
-            // tbBinFilePathC
-            // 
-            this.tbBinFilePathC.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.tbBinFilePathC.Location = new System.Drawing.Point(156, 139);
-            this.tbBinFilePathC.Name = "tbBinFilePathC";
-            this.tbBinFilePathC.Size = new System.Drawing.Size(971, 19);
-            this.tbBinFilePathC.TabIndex = 96;
-            // 
-            // button16
-            // 
-            this.button16.Location = new System.Drawing.Point(112, 138);
-            this.button16.Name = "button16";
-            this.button16.Size = new System.Drawing.Size(39, 23);
-            this.button16.TabIndex = 97;
-            this.button16.Text = "変更";
-            this.button16.UseVisualStyleBackColor = true;
-            this.button16.Click += new System.EventHandler(this.btnHexFileChange_Click);
-            // 
-            // button17
-            // 
-            this.button17.Location = new System.Drawing.Point(33, 138);
-            this.button17.Name = "button17";
-            this.button17.Size = new System.Drawing.Size(75, 23);
-            this.button17.TabIndex = 97;
-            this.button17.Text = "フォルダを開く";
-            this.button17.UseVisualStyleBackColor = true;
-            this.button17.Click += new System.EventHandler(this.btnFirmDirOpen_Click);
             // 
             // Form1
             // 
@@ -7001,7 +7000,7 @@ namespace SELDController
         private System.Windows.Forms.Label lblArduinoInstall;
         private System.Windows.Forms.Button btnEepromRoad;
         private System.Windows.Forms.Button btnEepromWrite;
-        private System.Windows.Forms.Button btnFirmDirOpen;
+        private System.Windows.Forms.Button btnFirmDirOpenHex;
         private System.Windows.Forms.Button btnFirmBackup;
         private System.Windows.Forms.Button btnBveExDirOpen;
         private System.Windows.Forms.TabPage tpExtra;
@@ -7066,8 +7065,8 @@ namespace SELDController
         private System.Windows.Forms.ComboBox cbVersionListCHex;
         private System.Windows.Forms.ComboBox cbVersionListCBin;
         private System.Windows.Forms.TextBox tbBinFilePathC;
-        private System.Windows.Forms.Button button17;
-        private System.Windows.Forms.Button button16;
+        private System.Windows.Forms.Button btnFirmDirOpenBin;
+        private System.Windows.Forms.Button btnBinFileChange;
     }
 }
 

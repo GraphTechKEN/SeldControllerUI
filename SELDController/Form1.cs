@@ -4276,11 +4276,11 @@ namespace SELDController
             {
                 MessageBox.Show("初回書込みまたは指定したポートが異なる可能性があります。");
             }
-            if (!File.Exists(@hexFilePath + ".bak"))
+            if (!File.Exists(tbHexFilePathC.Text))
             {
                 dr_org = MessageBox.Show("ファームウェアのバックアップファイルが存在しません、続行しますか？", "確認", MessageBoxButtons.OKCancel);
             }
-            if (File.Exists(hexFilePath) && dr_org.Equals(DialogResult.OK))
+            if (File.Exists(tbHexFilePathC.Text) && dr_org.Equals(DialogResult.OK))
             {
                 dr = MessageBox.Show("ファームウェアの書き込みを開始します。", "確認", MessageBoxButtons.OKCancel);
             }
@@ -4530,7 +4530,7 @@ namespace SELDController
         {
             DialogResult dr_org = DialogResult.Cancel;
             DialogResult dr = DialogResult.Cancel;
-            if (!File.Exists(@hexFilePath + ".bin"))
+            if (!File.Exists(tbBinFilePathC.Text))
             {
                 dr_org = MessageBox.Show("EEPROM設定値ファイルが存在しません", "確認", MessageBoxButtons.OK);
             }
@@ -4543,7 +4543,7 @@ namespace SELDController
                 ArduinoFinder(out bool found);
                 if (found)
                 {
-                    AvrWriter_32u4("write", "eeprom", "EEPROM設定値書き込み", hexFilePath+".bin");
+                    AvrWriter_32u4("write", "eeprom", "EEPROM設定値書き込み", tbBinFilePathC.Text);
                 }
             }
         }
@@ -4992,6 +4992,78 @@ namespace SELDController
                 string absolutePath = Path.GetFullPath(targetPath);
                 tbHexFilePathC.Text = absolutePath;
                 hexFilePath = targetPath;
+            }
+        }
+
+        private void cbVersionListCBin_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cbVersionListCBin.SelectedItem == null) return;
+
+            // 選択された文字列（例: "4.2.3.10" または "4.2.3.10 (backup)"）
+            string selectedItemText = cbVersionListCBin.SelectedItem.ToString();
+
+            // バックアップかどうかの判定フラグ
+            bool isBackup = selectedItemText.Contains("(backup)");
+
+            // パス検索用のバージョン文字列を抽出（(backup) があれば削除する）
+            string selectedVersion = selectedItemText.Replace(" (backup)", "").Trim();
+
+            // メンバー変数 searchedFiles から該当するバージョンが含まれるパスを検索
+            string targetPath = searchedFiles.FirstOrDefault(f => f.Contains($@"\{selectedVersion}\"));
+
+            if (targetPath != null)
+            {
+                // バックアップが選択されている場合、パスの末尾に .bak を付加する
+                // ※すでに targetPath の末尾が .bak の場合は重複しないようチェック
+                if (isBackup && !targetPath.EndsWith(".bak", StringComparison.OrdinalIgnoreCase))
+                {
+                    targetPath += ".bak";
+                }
+                // 逆に通常版が選択されているのにパス末尾が .bak の場合は除去する
+                else if (!isBackup && targetPath.EndsWith(".bak", StringComparison.OrdinalIgnoreCase))
+                {
+                    targetPath = targetPath.Substring(0, targetPath.Length - 4);
+                }
+
+                string absolutePath = Path.GetFullPath(targetPath);
+                tbBinFilePathC.Text = absolutePath;
+                hexFilePath = targetPath;
+            }
+        }
+
+        private void btnFirmDirOpenBin_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // フォルダをエクスプローラで開く
+                Process.Start("explorer.exe", Path.GetDirectoryName(tbBinFilePathC.Text));
+            }
+            catch (Exception ex)
+            {
+                // エラーが発生した場合の処理
+                MessageBox.Show("フォルダを開く際にエラーが発生しました:" + ex.Message);
+            }
+        }
+
+        private void btnBinFileChange_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofdHexFileChange = new OpenFileDialog())
+            {
+                ofdHexFileChange.Title = "BINファイルを選択してください";
+                ofdHexFileChange.Filter = "BINファイル (*.bin)|*.bin";
+                ofdHexFileChange.InitialDirectory = tbBinFilePathC.Text;
+
+                if (ofdHexFileChange.ShowDialog() == DialogResult.OK)
+                {
+                    // 選択されたファイルパスをラベルに表示
+                    tbBinFilePathC.Text = $"{ofdHexFileChange.FileName}";
+                    // アプリケーションの実行ディレクトリを基準とする
+                    string basePath = AppDomain.CurrentDomain.BaseDirectory;
+
+                    // 相対パスを計算
+                    string relativePath = GetRelativePath(basePath, ofdHexFileChange.FileName);
+                    hexFilePath = relativePath;
+                }
             }
         }
 
