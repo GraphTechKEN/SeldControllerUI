@@ -257,5 +257,8 @@
     <Setting Name="adj_EB" Type="System.String" Scope="User">
       <Value Profile="(Default)">1023</Value>
     </Setting>
+    <Setting Name="portNameATSP" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>

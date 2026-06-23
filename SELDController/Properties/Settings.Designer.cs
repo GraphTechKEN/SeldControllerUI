@@ -1042,5 +1042,17 @@ namespace SELDController.Properties {
                 this["adj_EB"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string portNameATSP {
+            get {
+                return ((string)(this["portNameATSP"]));
+            }
+            set {
+                this["portNameATSP"] = value;
+            }
+        }
     }
 }

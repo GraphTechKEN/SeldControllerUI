@@ -460,46 +460,58 @@ namespace SELDController
             this.tpFirmware = new System.Windows.Forms.TabPage();
             this.gpbATSP = new System.Windows.Forms.GroupBox();
             this.label116 = new System.Windows.Forms.Label();
-            this.comboBox1 = new System.Windows.Forms.ComboBox();
-            this.button8 = new System.Windows.Forms.Button();
-            this.button9 = new System.Windows.Forms.Button();
+            this.pnlATSPBoard = new System.Windows.Forms.Panel();
+            this.cbVersionListPBin = new System.Windows.Forms.ComboBox();
+            this.tbBinFilePathP = new System.Windows.Forms.TextBox();
+            this.cbVersionListPHex = new System.Windows.Forms.ComboBox();
+            this.btnFirmDirOpenHexP = new System.Windows.Forms.Button();
+            this.btnFirmDirOpenBinP = new System.Windows.Forms.Button();
+            this.btnHexFileChangeP = new System.Windows.Forms.Button();
+            this.tbHexFilePathP = new System.Windows.Forms.TextBox();
+            this.btnBinFileChangeP = new System.Windows.Forms.Button();
+            this.btnEepromWriteP = new System.Windows.Forms.Button();
+            this.btnFirmUpdateP = new System.Windows.Forms.Button();
             this.tbATSPBoardVersion = new System.Windows.Forms.TextBox();
-            this.button10 = new System.Windows.Forms.Button();
-            this.button11 = new System.Windows.Forms.Button();
-            this.button12 = new System.Windows.Forms.Button();
-            this.textBox3 = new System.Windows.Forms.TextBox();
-            this.button13 = new System.Windows.Forms.Button();
-            this.button14 = new System.Windows.Forms.Button();
-            this.button15 = new System.Windows.Forms.Button();
+            this.btnFirmBackupP = new System.Windows.Forms.Button();
+            this.btnOpenATSP = new System.Windows.Forms.Button();
+            this.cbPortSelectATSP = new System.Windows.Forms.ComboBox();
+            this.btnEepromLoadP = new System.Windows.Forms.Button();
             this.gpbDispBoard = new System.Windows.Forms.GroupBox();
-            this.label115 = new System.Windows.Forms.Label();
+            this.pnlDispBoard = new System.Windows.Forms.Panel();
+            this.cbVersionListDBin = new System.Windows.Forms.ComboBox();
+            this.tbBinFilePathD = new System.Windows.Forms.TextBox();
+            this.cbVersionListDHex = new System.Windows.Forms.ComboBox();
+            this.btnFirmDirOpenBinD = new System.Windows.Forms.Button();
+            this.btnFirmDirOpenHexD = new System.Windows.Forms.Button();
+            this.btnBinFileChangeD = new System.Windows.Forms.Button();
+            this.btnHexFileChangeD = new System.Windows.Forms.Button();
+            this.tbHexFilePathD = new System.Windows.Forms.TextBox();
+            this.btnEepromWriteD = new System.Windows.Forms.Button();
+            this.btnFirmUpdateD = new System.Windows.Forms.Button();
             this.cbPortSelectDensei = new System.Windows.Forms.ComboBox();
+            this.btnFirmBackupD = new System.Windows.Forms.Button();
+            this.label115 = new System.Windows.Forms.Label();
+            this.btnEepromLoadD = new System.Windows.Forms.Button();
             this.btnOpenDensei = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
             this.tbDispBoardVersion = new System.Windows.Forms.TextBox();
-            this.button2 = new System.Windows.Forms.Button();
-            this.button3 = new System.Windows.Forms.Button();
-            this.button4 = new System.Windows.Forms.Button();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.button5 = new System.Windows.Forms.Button();
-            this.button6 = new System.Windows.Forms.Button();
-            this.button7 = new System.Windows.Forms.Button();
             this.gpbControllerBoard = new System.Windows.Forms.GroupBox();
             this.cbVersionListCBin = new System.Windows.Forms.ComboBox();
             this.cbVersionListCHex = new System.Windows.Forms.ComboBox();
             this.label114 = new System.Windows.Forms.Label();
-            this.btnFirmBackup = new System.Windows.Forms.Button();
-            this.btnFirmDirOpenBin = new System.Windows.Forms.Button();
-            this.btnFirmDirOpenHex = new System.Windows.Forms.Button();
+            this.btnFirmBackupC = new System.Windows.Forms.Button();
+            this.btnFirmDirOpenBinC = new System.Windows.Forms.Button();
+            this.btnFirmDirOpenHexC = new System.Windows.Forms.Button();
             this.tbControlBoardVersion = new System.Windows.Forms.TextBox();
-            this.btnBinFileChange = new System.Windows.Forms.Button();
-            this.btnHexFileChange = new System.Windows.Forms.Button();
+            this.btnBinFileChangeC = new System.Windows.Forms.Button();
+            this.btnHexFileChangeC = new System.Windows.Forms.Button();
             this.tbBinFilePathC = new System.Windows.Forms.TextBox();
             this.tbHexFilePathC = new System.Windows.Forms.TextBox();
-            this.btnEepromWrite = new System.Windows.Forms.Button();
-            this.btnEepromRoad = new System.Windows.Forms.Button();
-            this.btnFirmUpdate = new System.Windows.Forms.Button();
+            this.btnEepromWriteC = new System.Windows.Forms.Button();
+            this.btnEepromLoadC = new System.Windows.Forms.Button();
+            this.btnFirmUpdateC = new System.Windows.Forms.Button();
             this.btnDriverInstall = new System.Windows.Forms.Button();
+            this.label118 = new System.Windows.Forms.Label();
+            this.label117 = new System.Windows.Forms.Label();
             this.lblArduinoInstall = new System.Windows.Forms.Label();
             this.llArduinoIde = new System.Windows.Forms.LinkLabel();
             this.tpExtra = new System.Windows.Forms.TabPage();
@@ -542,6 +554,9 @@ namespace SELDController
             this.btnSaveParamXml = new System.Windows.Forms.Button();
             this.btnLoadParamXml = new System.Windows.Forms.Button();
             this.serialPortChecker = new System.Windows.Forms.Timer(this.components);
+            this.timerControllerBoardFinder = new System.Windows.Forms.Timer(this.components);
+            this.serialPortATSP = new System.IO.Ports.SerialPort(this.components);
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.menuStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -609,7 +624,9 @@ namespace SELDController
             this.tpBvePlugin.SuspendLayout();
             this.tpFirmware.SuspendLayout();
             this.gpbATSP.SuspendLayout();
+            this.pnlATSPBoard.SuspendLayout();
             this.gpbDispBoard.SuspendLayout();
+            this.pnlDispBoard.SuspendLayout();
             this.gpbControllerBoard.SuspendLayout();
             this.tpExtra.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -5311,7 +5328,6 @@ namespace SELDController
             this.checkBox1.TabIndex = 63;
             this.checkBox1.Text = "ログ出力";
             this.checkBox1.UseVisualStyleBackColor = true;
-            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
             // btnLogClear
             // 
@@ -5510,6 +5526,8 @@ namespace SELDController
             this.tpFirmware.Controls.Add(this.gpbDispBoard);
             this.tpFirmware.Controls.Add(this.gpbControllerBoard);
             this.tpFirmware.Controls.Add(this.btnDriverInstall);
+            this.tpFirmware.Controls.Add(this.label118);
+            this.tpFirmware.Controls.Add(this.label117);
             this.tpFirmware.Controls.Add(this.lblArduinoInstall);
             this.tpFirmware.Controls.Add(this.llArduinoIde);
             this.tpFirmware.Location = new System.Drawing.Point(4, 22);
@@ -5521,21 +5539,19 @@ namespace SELDController
             // 
             // gpbATSP
             // 
+            this.gpbATSP.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.gpbATSP.BackColor = System.Drawing.Color.Honeydew;
             this.gpbATSP.Controls.Add(this.label116);
-            this.gpbATSP.Controls.Add(this.comboBox1);
-            this.gpbATSP.Controls.Add(this.button8);
-            this.gpbATSP.Controls.Add(this.button9);
+            this.gpbATSP.Controls.Add(this.pnlATSPBoard);
             this.gpbATSP.Controls.Add(this.tbATSPBoardVersion);
-            this.gpbATSP.Controls.Add(this.button10);
-            this.gpbATSP.Controls.Add(this.button11);
-            this.gpbATSP.Controls.Add(this.button12);
-            this.gpbATSP.Controls.Add(this.textBox3);
-            this.gpbATSP.Controls.Add(this.button13);
-            this.gpbATSP.Controls.Add(this.button14);
-            this.gpbATSP.Controls.Add(this.button15);
-            this.gpbATSP.Location = new System.Drawing.Point(8, 340);
+            this.gpbATSP.Controls.Add(this.btnFirmBackupP);
+            this.gpbATSP.Controls.Add(this.btnOpenATSP);
+            this.gpbATSP.Controls.Add(this.cbPortSelectATSP);
+            this.gpbATSP.Controls.Add(this.btnEepromLoadP);
+            this.gpbATSP.Location = new System.Drawing.Point(8, 245);
             this.gpbATSP.Name = "gpbATSP";
-            this.gpbATSP.Size = new System.Drawing.Size(847, 115);
+            this.gpbATSP.Size = new System.Drawing.Size(1133, 109);
             this.gpbATSP.TabIndex = 120;
             this.gpbATSP.TabStop = false;
             this.gpbATSP.Text = "ATS-P 表示灯基板";
@@ -5543,165 +5559,357 @@ namespace SELDController
             // label116
             // 
             this.label116.AutoSize = true;
-            this.label116.Location = new System.Drawing.Point(287, 20);
+            this.label116.Location = new System.Drawing.Point(68, 20);
             this.label116.Name = "label116";
             this.label116.Size = new System.Drawing.Size(118, 12);
             this.label116.TabIndex = 106;
             this.label116.Text = "現在のATS-P基板Ver.";
             // 
-            // comboBox1
+            // pnlATSPBoard
             // 
-            this.comboBox1.FormattingEnabled = true;
-            this.comboBox1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.comboBox1.Location = new System.Drawing.Point(22, 17);
-            this.comboBox1.Name = "comboBox1";
-            this.comboBox1.Size = new System.Drawing.Size(167, 20);
-            this.comboBox1.TabIndex = 119;
-            this.comboBox1.Visible = false;
+            this.pnlATSPBoard.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pnlATSPBoard.Controls.Add(this.cbVersionListPBin);
+            this.pnlATSPBoard.Controls.Add(this.tbBinFilePathP);
+            this.pnlATSPBoard.Controls.Add(this.cbVersionListPHex);
+            this.pnlATSPBoard.Controls.Add(this.btnFirmDirOpenHexP);
+            this.pnlATSPBoard.Controls.Add(this.btnFirmDirOpenBinP);
+            this.pnlATSPBoard.Controls.Add(this.btnHexFileChangeP);
+            this.pnlATSPBoard.Controls.Add(this.tbHexFilePathP);
+            this.pnlATSPBoard.Controls.Add(this.btnBinFileChangeP);
+            this.pnlATSPBoard.Controls.Add(this.btnEepromWriteP);
+            this.pnlATSPBoard.Controls.Add(this.btnFirmUpdateP);
+            this.pnlATSPBoard.Location = new System.Drawing.Point(5, 43);
+            this.pnlATSPBoard.Name = "pnlATSPBoard";
+            this.pnlATSPBoard.Size = new System.Drawing.Size(1122, 60);
+            this.pnlATSPBoard.TabIndex = 120;
             // 
-            // button8
+            // cbVersionListPBin
             // 
-            this.button8.Location = new System.Drawing.Point(195, 15);
-            this.button8.Name = "button8";
-            this.button8.Size = new System.Drawing.Size(75, 23);
-            this.button8.TabIndex = 118;
-            this.button8.Text = "通信開始";
-            this.button8.UseVisualStyleBackColor = true;
-            this.button8.Visible = false;
+            this.cbVersionListPBin.FormattingEnabled = true;
+            this.cbVersionListPBin.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.cbVersionListPBin.Location = new System.Drawing.Point(17, 33);
+            this.cbVersionListPBin.Name = "cbVersionListPBin";
+            this.cbVersionListPBin.Size = new System.Drawing.Size(167, 20);
+            this.cbVersionListPBin.TabIndex = 120;
+            this.cbVersionListPBin.SelectedIndexChanged += new System.EventHandler(this.cbVersionListPBin_SelectedIndexChanged_1);
             // 
-            // button9
+            // tbBinFilePathP
             // 
-            this.button9.Enabled = false;
-            this.button9.Location = new System.Drawing.Point(156, 62);
-            this.button9.Name = "button9";
-            this.button9.Size = new System.Drawing.Size(130, 23);
-            this.button9.TabIndex = 101;
-            this.button9.Text = "ファームリカバリ";
-            this.button9.UseVisualStyleBackColor = true;
-            this.button9.Visible = false;
+            this.tbBinFilePathP.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tbBinFilePathP.Location = new System.Drawing.Point(448, 34);
+            this.tbBinFilePathP.Name = "tbBinFilePathP";
+            this.tbBinFilePathP.Size = new System.Drawing.Size(663, 19);
+            this.tbBinFilePathP.TabIndex = 96;
+            // 
+            // cbVersionListPHex
+            // 
+            this.cbVersionListPHex.FormattingEnabled = true;
+            this.cbVersionListPHex.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.cbVersionListPHex.Location = new System.Drawing.Point(16, 5);
+            this.cbVersionListPHex.Name = "cbVersionListPHex";
+            this.cbVersionListPHex.Size = new System.Drawing.Size(167, 20);
+            this.cbVersionListPHex.TabIndex = 121;
+            this.cbVersionListPHex.SelectedIndexChanged += new System.EventHandler(this.cbVersionListPHex_SelectedIndexChanged);
+            // 
+            // btnFirmDirOpenHexP
+            // 
+            this.btnFirmDirOpenHexP.Location = new System.Drawing.Point(325, 3);
+            this.btnFirmDirOpenHexP.Name = "btnFirmDirOpenHexP";
+            this.btnFirmDirOpenHexP.Size = new System.Drawing.Size(75, 23);
+            this.btnFirmDirOpenHexP.TabIndex = 97;
+            this.btnFirmDirOpenHexP.Text = "フォルダを開く";
+            this.btnFirmDirOpenHexP.UseVisualStyleBackColor = true;
+            this.btnFirmDirOpenHexP.Click += new System.EventHandler(this.btnFirmDirOpenHexP_Click);
+            // 
+            // btnFirmDirOpenBinP
+            // 
+            this.btnFirmDirOpenBinP.Location = new System.Drawing.Point(326, 32);
+            this.btnFirmDirOpenBinP.Name = "btnFirmDirOpenBinP";
+            this.btnFirmDirOpenBinP.Size = new System.Drawing.Size(75, 23);
+            this.btnFirmDirOpenBinP.TabIndex = 97;
+            this.btnFirmDirOpenBinP.Text = "フォルダを開く";
+            this.btnFirmDirOpenBinP.UseVisualStyleBackColor = true;
+            this.btnFirmDirOpenBinP.Click += new System.EventHandler(this.btnFirmDirOpenBinP_Click);
+            // 
+            // btnHexFileChangeP
+            // 
+            this.btnHexFileChangeP.Location = new System.Drawing.Point(404, 3);
+            this.btnHexFileChangeP.Name = "btnHexFileChangeP";
+            this.btnHexFileChangeP.Size = new System.Drawing.Size(37, 23);
+            this.btnHexFileChangeP.TabIndex = 97;
+            this.btnHexFileChangeP.Text = "変更";
+            this.btnHexFileChangeP.UseVisualStyleBackColor = true;
+            this.btnHexFileChangeP.Click += new System.EventHandler(this.btnHexFileChangeP_Click);
+            // 
+            // tbHexFilePathP
+            // 
+            this.tbHexFilePathP.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tbHexFilePathP.Location = new System.Drawing.Point(447, 5);
+            this.tbHexFilePathP.Name = "tbHexFilePathP";
+            this.tbHexFilePathP.Size = new System.Drawing.Size(664, 19);
+            this.tbHexFilePathP.TabIndex = 96;
+            // 
+            // btnBinFileChangeP
+            // 
+            this.btnBinFileChangeP.Location = new System.Drawing.Point(405, 32);
+            this.btnBinFileChangeP.Name = "btnBinFileChangeP";
+            this.btnBinFileChangeP.Size = new System.Drawing.Size(38, 23);
+            this.btnBinFileChangeP.TabIndex = 97;
+            this.btnBinFileChangeP.Text = "変更";
+            this.btnBinFileChangeP.UseVisualStyleBackColor = true;
+            this.btnBinFileChangeP.Click += new System.EventHandler(this.btnBinFileChangeP_Click);
+            // 
+            // btnEepromWriteP
+            // 
+            this.btnEepromWriteP.Location = new System.Drawing.Point(188, 32);
+            this.btnEepromWriteP.Name = "btnEepromWriteP";
+            this.btnEepromWriteP.Size = new System.Drawing.Size(131, 23);
+            this.btnEepromWriteP.TabIndex = 95;
+            this.btnEepromWriteP.Text = "EEPROM設定値書込";
+            this.btnEepromWriteP.UseVisualStyleBackColor = true;
+            this.btnEepromWriteP.Click += new System.EventHandler(this.btnEepromWriteP_Click);
+            // 
+            // btnFirmUpdateP
+            // 
+            this.btnFirmUpdateP.Location = new System.Drawing.Point(188, 3);
+            this.btnFirmUpdateP.Name = "btnFirmUpdateP";
+            this.btnFirmUpdateP.Size = new System.Drawing.Size(131, 23);
+            this.btnFirmUpdateP.TabIndex = 95;
+            this.btnFirmUpdateP.Text = "ファーム書込";
+            this.btnFirmUpdateP.UseVisualStyleBackColor = true;
+            this.btnFirmUpdateP.Click += new System.EventHandler(this.btnFirmUpdateP_Click);
             // 
             // tbATSPBoardVersion
             // 
-            this.tbATSPBoardVersion.Location = new System.Drawing.Point(412, 15);
+            this.tbATSPBoardVersion.Location = new System.Drawing.Point(193, 17);
             this.tbATSPBoardVersion.Name = "tbATSPBoardVersion";
-            this.tbATSPBoardVersion.Size = new System.Drawing.Size(166, 19);
+            this.tbATSPBoardVersion.Size = new System.Drawing.Size(131, 19);
             this.tbATSPBoardVersion.TabIndex = 105;
             // 
-            // button10
+            // btnFirmBackupP
             // 
-            this.button10.Location = new System.Drawing.Point(22, 62);
-            this.button10.Name = "button10";
-            this.button10.Size = new System.Drawing.Size(130, 23);
-            this.button10.TabIndex = 100;
-            this.button10.Text = "ファームバックアップ";
-            this.button10.UseVisualStyleBackColor = true;
-            this.button10.Visible = false;
+            this.btnFirmBackupP.Location = new System.Drawing.Point(330, 15);
+            this.btnFirmBackupP.Name = "btnFirmBackupP";
+            this.btnFirmBackupP.Size = new System.Drawing.Size(131, 23);
+            this.btnFirmBackupP.TabIndex = 100;
+            this.btnFirmBackupP.Text = "ファームバックアップ";
+            this.btnFirmBackupP.UseVisualStyleBackColor = true;
+            this.btnFirmBackupP.Click += new System.EventHandler(this.btnFirmBackupP_Click);
             // 
-            // button11
+            // btnOpenATSP
             // 
-            this.button11.Location = new System.Drawing.Point(760, 38);
-            this.button11.Name = "button11";
-            this.button11.Size = new System.Drawing.Size(75, 23);
-            this.button11.TabIndex = 97;
-            this.button11.Text = "フォルダを開く";
-            this.button11.UseVisualStyleBackColor = true;
-            this.button11.Visible = false;
+            this.btnOpenATSP.Location = new System.Drawing.Point(840, 16);
+            this.btnOpenATSP.Name = "btnOpenATSP";
+            this.btnOpenATSP.Size = new System.Drawing.Size(75, 23);
+            this.btnOpenATSP.TabIndex = 118;
+            this.btnOpenATSP.Text = "通信開始";
+            this.btnOpenATSP.UseVisualStyleBackColor = true;
+            this.btnOpenATSP.Visible = false;
+            this.btnOpenATSP.Click += new System.EventHandler(this.btnOpenATSP_Click);
             // 
-            // button12
+            // cbPortSelectATSP
             // 
-            this.button12.Location = new System.Drawing.Point(679, 38);
-            this.button12.Name = "button12";
-            this.button12.Size = new System.Drawing.Size(75, 23);
-            this.button12.TabIndex = 97;
-            this.button12.Text = "変更";
-            this.button12.UseVisualStyleBackColor = true;
-            this.button12.Visible = false;
+            this.cbPortSelectATSP.FormattingEnabled = true;
+            this.cbPortSelectATSP.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.cbPortSelectATSP.Location = new System.Drawing.Point(593, 18);
+            this.cbPortSelectATSP.Name = "cbPortSelectATSP";
+            this.cbPortSelectATSP.Size = new System.Drawing.Size(241, 20);
+            this.cbPortSelectATSP.TabIndex = 119;
+            this.cbPortSelectATSP.Visible = false;
+            this.cbPortSelectATSP.MouseHover += new System.EventHandler(this.cbPortSelectATSP_MouseHover);
             // 
-            // textBox3
+            // btnEepromLoadP
             // 
-            this.textBox3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox3.Location = new System.Drawing.Point(22, 40);
-            this.textBox3.Name = "textBox3";
-            this.textBox3.Size = new System.Drawing.Size(651, 19);
-            this.textBox3.TabIndex = 96;
-            this.textBox3.Visible = false;
-            // 
-            // button13
-            // 
-            this.button13.Enabled = false;
-            this.button13.Location = new System.Drawing.Point(156, 86);
-            this.button13.Name = "button13";
-            this.button13.Size = new System.Drawing.Size(130, 23);
-            this.button13.TabIndex = 95;
-            this.button13.Text = "EEPROM設定値書込";
-            this.button13.UseVisualStyleBackColor = true;
-            this.button13.Visible = false;
-            // 
-            // button14
-            // 
-            this.button14.Location = new System.Drawing.Point(22, 86);
-            this.button14.Name = "button14";
-            this.button14.Size = new System.Drawing.Size(130, 23);
-            this.button14.TabIndex = 95;
-            this.button14.Text = "EEPROM設定値読出";
-            this.button14.UseVisualStyleBackColor = true;
-            this.button14.Visible = false;
-            // 
-            // button15
-            // 
-            this.button15.Location = new System.Drawing.Point(289, 62);
-            this.button15.Name = "button15";
-            this.button15.Size = new System.Drawing.Size(130, 23);
-            this.button15.TabIndex = 95;
-            this.button15.Text = "ファーム書込";
-            this.button15.UseVisualStyleBackColor = true;
-            this.button15.Visible = false;
+            this.btnEepromLoadP.Location = new System.Drawing.Point(467, 15);
+            this.btnEepromLoadP.Name = "btnEepromLoadP";
+            this.btnEepromLoadP.Size = new System.Drawing.Size(120, 23);
+            this.btnEepromLoadP.TabIndex = 95;
+            this.btnEepromLoadP.Text = "EEPROM設定値読出";
+            this.btnEepromLoadP.UseVisualStyleBackColor = true;
+            this.btnEepromLoadP.Click += new System.EventHandler(this.btnEepromLoadP_Click_1);
             // 
             // gpbDispBoard
             // 
-            this.gpbDispBoard.Controls.Add(this.label115);
+            this.gpbDispBoard.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.gpbDispBoard.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.gpbDispBoard.Controls.Add(this.pnlDispBoard);
             this.gpbDispBoard.Controls.Add(this.cbPortSelectDensei);
+            this.gpbDispBoard.Controls.Add(this.btnFirmBackupD);
+            this.gpbDispBoard.Controls.Add(this.label115);
+            this.gpbDispBoard.Controls.Add(this.btnEepromLoadD);
             this.gpbDispBoard.Controls.Add(this.btnOpenDensei);
-            this.gpbDispBoard.Controls.Add(this.button1);
             this.gpbDispBoard.Controls.Add(this.tbDispBoardVersion);
-            this.gpbDispBoard.Controls.Add(this.button2);
-            this.gpbDispBoard.Controls.Add(this.button3);
-            this.gpbDispBoard.Controls.Add(this.button4);
-            this.gpbDispBoard.Controls.Add(this.textBox1);
-            this.gpbDispBoard.Controls.Add(this.button5);
-            this.gpbDispBoard.Controls.Add(this.button6);
-            this.gpbDispBoard.Controls.Add(this.button7);
-            this.gpbDispBoard.Location = new System.Drawing.Point(8, 220);
+            this.gpbDispBoard.Location = new System.Drawing.Point(8, 139);
             this.gpbDispBoard.Name = "gpbDispBoard";
-            this.gpbDispBoard.Size = new System.Drawing.Size(847, 116);
+            this.gpbDispBoard.Size = new System.Drawing.Size(1133, 100);
             this.gpbDispBoard.TabIndex = 104;
             this.gpbDispBoard.TabStop = false;
-            this.gpbDispBoard.Text = "Densei 表示灯基板";
+            this.gpbDispBoard.Text = "電制表示灯基板";
             // 
-            // label115
+            // pnlDispBoard
             // 
-            this.label115.AutoSize = true;
-            this.label115.Location = new System.Drawing.Point(287, 20);
-            this.label115.Name = "label115";
-            this.label115.Size = new System.Drawing.Size(119, 12);
-            this.label115.TabIndex = 106;
-            this.label115.Text = "現在の表示灯基板Ver.";
+            this.pnlDispBoard.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pnlDispBoard.Controls.Add(this.cbVersionListDBin);
+            this.pnlDispBoard.Controls.Add(this.tbBinFilePathD);
+            this.pnlDispBoard.Controls.Add(this.cbVersionListDHex);
+            this.pnlDispBoard.Controls.Add(this.btnFirmDirOpenBinD);
+            this.pnlDispBoard.Controls.Add(this.btnFirmDirOpenHexD);
+            this.pnlDispBoard.Controls.Add(this.btnBinFileChangeD);
+            this.pnlDispBoard.Controls.Add(this.btnHexFileChangeD);
+            this.pnlDispBoard.Controls.Add(this.tbHexFilePathD);
+            this.pnlDispBoard.Controls.Add(this.btnEepromWriteD);
+            this.pnlDispBoard.Controls.Add(this.btnFirmUpdateD);
+            this.pnlDispBoard.Location = new System.Drawing.Point(5, 37);
+            this.pnlDispBoard.Name = "pnlDispBoard";
+            this.pnlDispBoard.Size = new System.Drawing.Size(1122, 58);
+            this.pnlDispBoard.TabIndex = 121;
+            // 
+            // cbVersionListDBin
+            // 
+            this.cbVersionListDBin.FormattingEnabled = true;
+            this.cbVersionListDBin.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.cbVersionListDBin.Location = new System.Drawing.Point(17, 31);
+            this.cbVersionListDBin.Name = "cbVersionListDBin";
+            this.cbVersionListDBin.Size = new System.Drawing.Size(167, 20);
+            this.cbVersionListDBin.TabIndex = 120;
+            this.cbVersionListDBin.SelectedIndexChanged += new System.EventHandler(this.cbVersionListDBin_SelectedIndexChanged);
+            // 
+            // tbBinFilePathD
+            // 
+            this.tbBinFilePathD.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tbBinFilePathD.Location = new System.Drawing.Point(448, 31);
+            this.tbBinFilePathD.Name = "tbBinFilePathD";
+            this.tbBinFilePathD.Size = new System.Drawing.Size(663, 19);
+            this.tbBinFilePathD.TabIndex = 96;
+            // 
+            // cbVersionListDHex
+            // 
+            this.cbVersionListDHex.FormattingEnabled = true;
+            this.cbVersionListDHex.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.cbVersionListDHex.Location = new System.Drawing.Point(17, 5);
+            this.cbVersionListDHex.Name = "cbVersionListDHex";
+            this.cbVersionListDHex.Size = new System.Drawing.Size(167, 20);
+            this.cbVersionListDHex.TabIndex = 120;
+            this.cbVersionListDHex.SelectedIndexChanged += new System.EventHandler(this.cbVersionListDHex_SelectedIndexChanged);
+            // 
+            // btnFirmDirOpenBinD
+            // 
+            this.btnFirmDirOpenBinD.Location = new System.Drawing.Point(326, 29);
+            this.btnFirmDirOpenBinD.Name = "btnFirmDirOpenBinD";
+            this.btnFirmDirOpenBinD.Size = new System.Drawing.Size(75, 23);
+            this.btnFirmDirOpenBinD.TabIndex = 97;
+            this.btnFirmDirOpenBinD.Text = "フォルダを開く";
+            this.btnFirmDirOpenBinD.UseVisualStyleBackColor = true;
+            this.btnFirmDirOpenBinD.Click += new System.EventHandler(this.btnFirmDirOpenBinD_Click);
+            // 
+            // btnFirmDirOpenHexD
+            // 
+            this.btnFirmDirOpenHexD.Location = new System.Drawing.Point(325, 3);
+            this.btnFirmDirOpenHexD.Name = "btnFirmDirOpenHexD";
+            this.btnFirmDirOpenHexD.Size = new System.Drawing.Size(75, 23);
+            this.btnFirmDirOpenHexD.TabIndex = 97;
+            this.btnFirmDirOpenHexD.Text = "フォルダを開く";
+            this.btnFirmDirOpenHexD.UseVisualStyleBackColor = true;
+            this.btnFirmDirOpenHexD.Click += new System.EventHandler(this.btnFirmDirOpenHexD_Click);
+            // 
+            // btnBinFileChangeD
+            // 
+            this.btnBinFileChangeD.Location = new System.Drawing.Point(407, 29);
+            this.btnBinFileChangeD.Name = "btnBinFileChangeD";
+            this.btnBinFileChangeD.Size = new System.Drawing.Size(38, 23);
+            this.btnBinFileChangeD.TabIndex = 97;
+            this.btnBinFileChangeD.Text = "変更";
+            this.btnBinFileChangeD.UseVisualStyleBackColor = true;
+            this.btnBinFileChangeD.Click += new System.EventHandler(this.btnBinFileChangeD_Click);
+            // 
+            // btnHexFileChangeD
+            // 
+            this.btnHexFileChangeD.Location = new System.Drawing.Point(406, 3);
+            this.btnHexFileChangeD.Name = "btnHexFileChangeD";
+            this.btnHexFileChangeD.Size = new System.Drawing.Size(38, 23);
+            this.btnHexFileChangeD.TabIndex = 97;
+            this.btnHexFileChangeD.Text = "変更";
+            this.btnHexFileChangeD.UseVisualStyleBackColor = true;
+            this.btnHexFileChangeD.Click += new System.EventHandler(this.btnHexFileChangeD_Click);
+            // 
+            // tbHexFilePathD
+            // 
+            this.tbHexFilePathD.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tbHexFilePathD.Location = new System.Drawing.Point(448, 5);
+            this.tbHexFilePathD.Name = "tbHexFilePathD";
+            this.tbHexFilePathD.Size = new System.Drawing.Size(663, 19);
+            this.tbHexFilePathD.TabIndex = 96;
+            // 
+            // btnEepromWriteD
+            // 
+            this.btnEepromWriteD.Location = new System.Drawing.Point(188, 29);
+            this.btnEepromWriteD.Name = "btnEepromWriteD";
+            this.btnEepromWriteD.Size = new System.Drawing.Size(131, 23);
+            this.btnEepromWriteD.TabIndex = 95;
+            this.btnEepromWriteD.Text = "EEPROM設定値書込";
+            this.btnEepromWriteD.UseVisualStyleBackColor = true;
+            this.btnEepromWriteD.Click += new System.EventHandler(this.btnEepromWriteD_Click);
+            // 
+            // btnFirmUpdateD
+            // 
+            this.btnFirmUpdateD.Location = new System.Drawing.Point(188, 3);
+            this.btnFirmUpdateD.Name = "btnFirmUpdateD";
+            this.btnFirmUpdateD.Size = new System.Drawing.Size(131, 23);
+            this.btnFirmUpdateD.TabIndex = 95;
+            this.btnFirmUpdateD.Text = "ファーム書込";
+            this.btnFirmUpdateD.UseVisualStyleBackColor = true;
+            this.btnFirmUpdateD.Click += new System.EventHandler(this.btnFirmUpdateD_Click);
             // 
             // cbPortSelectDensei
             // 
             this.cbPortSelectDensei.FormattingEnabled = true;
             this.cbPortSelectDensei.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.cbPortSelectDensei.Location = new System.Drawing.Point(22, 17);
+            this.cbPortSelectDensei.Location = new System.Drawing.Point(593, 15);
             this.cbPortSelectDensei.Name = "cbPortSelectDensei";
-            this.cbPortSelectDensei.Size = new System.Drawing.Size(167, 20);
+            this.cbPortSelectDensei.Size = new System.Drawing.Size(241, 20);
             this.cbPortSelectDensei.TabIndex = 119;
             this.cbPortSelectDensei.Visible = false;
             this.cbPortSelectDensei.MouseHover += new System.EventHandler(this.cbPortSelectDensei_MouseHover);
             // 
+            // btnFirmBackupD
+            // 
+            this.btnFirmBackupD.Location = new System.Drawing.Point(330, 13);
+            this.btnFirmBackupD.Name = "btnFirmBackupD";
+            this.btnFirmBackupD.Size = new System.Drawing.Size(131, 23);
+            this.btnFirmBackupD.TabIndex = 100;
+            this.btnFirmBackupD.Text = "ファームバックアップ";
+            this.btnFirmBackupD.UseVisualStyleBackColor = true;
+            this.btnFirmBackupD.Click += new System.EventHandler(this.btnFirmBackupD_Click);
+            // 
+            // label115
+            // 
+            this.label115.AutoSize = true;
+            this.label115.Location = new System.Drawing.Point(68, 18);
+            this.label115.Name = "label115";
+            this.label115.Size = new System.Drawing.Size(119, 12);
+            this.label115.TabIndex = 106;
+            this.label115.Text = "現在の表示灯基板Ver.";
+            // 
+            // btnEepromLoadD
+            // 
+            this.btnEepromLoadD.Location = new System.Drawing.Point(467, 13);
+            this.btnEepromLoadD.Name = "btnEepromLoadD";
+            this.btnEepromLoadD.Size = new System.Drawing.Size(120, 23);
+            this.btnEepromLoadD.TabIndex = 95;
+            this.btnEepromLoadD.Text = "EEPROM設定値読出";
+            this.btnEepromLoadD.UseVisualStyleBackColor = true;
+            this.btnEepromLoadD.Click += new System.EventHandler(this.btnEepromLoadD_Click);
+            // 
             // btnOpenDensei
             // 
-            this.btnOpenDensei.Location = new System.Drawing.Point(195, 15);
+            this.btnOpenDensei.Location = new System.Drawing.Point(840, 14);
             this.btnOpenDensei.Name = "btnOpenDensei";
             this.btnOpenDensei.Size = new System.Drawing.Size(75, 23);
             this.btnOpenDensei.TabIndex = 118;
@@ -5710,116 +5918,35 @@ namespace SELDController
             this.btnOpenDensei.Visible = false;
             this.btnOpenDensei.Click += new System.EventHandler(this.btnOpenDensei_Click);
             // 
-            // button1
-            // 
-            this.button1.Enabled = false;
-            this.button1.Location = new System.Drawing.Point(156, 60);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(130, 23);
-            this.button1.TabIndex = 101;
-            this.button1.Text = "ファームリカバリ";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Visible = false;
-            // 
             // tbDispBoardVersion
             // 
-            this.tbDispBoardVersion.Location = new System.Drawing.Point(412, 15);
+            this.tbDispBoardVersion.Location = new System.Drawing.Point(193, 15);
             this.tbDispBoardVersion.Name = "tbDispBoardVersion";
-            this.tbDispBoardVersion.Size = new System.Drawing.Size(166, 19);
+            this.tbDispBoardVersion.Size = new System.Drawing.Size(131, 19);
             this.tbDispBoardVersion.TabIndex = 105;
-            // 
-            // button2
-            // 
-            this.button2.Location = new System.Drawing.Point(22, 60);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(130, 23);
-            this.button2.TabIndex = 100;
-            this.button2.Text = "ファームバックアップ";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Visible = false;
-            // 
-            // button3
-            // 
-            this.button3.Location = new System.Drawing.Point(760, 36);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(75, 23);
-            this.button3.TabIndex = 97;
-            this.button3.Text = "フォルダを開く";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Visible = false;
-            // 
-            // button4
-            // 
-            this.button4.Location = new System.Drawing.Point(679, 36);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(75, 23);
-            this.button4.TabIndex = 97;
-            this.button4.Text = "変更";
-            this.button4.UseVisualStyleBackColor = true;
-            this.button4.Visible = false;
-            // 
-            // textBox1
-            // 
-            this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox1.Location = new System.Drawing.Point(22, 38);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(651, 19);
-            this.textBox1.TabIndex = 96;
-            this.textBox1.Visible = false;
-            // 
-            // button5
-            // 
-            this.button5.Enabled = false;
-            this.button5.Location = new System.Drawing.Point(156, 84);
-            this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(130, 23);
-            this.button5.TabIndex = 95;
-            this.button5.Text = "EEPROM設定値書込";
-            this.button5.UseVisualStyleBackColor = true;
-            this.button5.Visible = false;
-            // 
-            // button6
-            // 
-            this.button6.Location = new System.Drawing.Point(22, 84);
-            this.button6.Name = "button6";
-            this.button6.Size = new System.Drawing.Size(130, 23);
-            this.button6.TabIndex = 95;
-            this.button6.Text = "EEPROM設定値読出";
-            this.button6.UseVisualStyleBackColor = true;
-            this.button6.Visible = false;
-            // 
-            // button7
-            // 
-            this.button7.Location = new System.Drawing.Point(289, 60);
-            this.button7.Name = "button7";
-            this.button7.Size = new System.Drawing.Size(130, 23);
-            this.button7.TabIndex = 95;
-            this.button7.Text = "ファーム書込";
-            this.button7.UseVisualStyleBackColor = true;
-            this.button7.Visible = false;
             // 
             // gpbControllerBoard
             // 
             this.gpbControllerBoard.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.gpbControllerBoard.BackColor = System.Drawing.SystemColors.GradientInactiveCaption;
             this.gpbControllerBoard.Controls.Add(this.cbVersionListCBin);
             this.gpbControllerBoard.Controls.Add(this.cbVersionListCHex);
             this.gpbControllerBoard.Controls.Add(this.label114);
-            this.gpbControllerBoard.Controls.Add(this.btnFirmBackup);
-            this.gpbControllerBoard.Controls.Add(this.btnFirmDirOpenBin);
-            this.gpbControllerBoard.Controls.Add(this.btnFirmDirOpenHex);
+            this.gpbControllerBoard.Controls.Add(this.btnFirmBackupC);
+            this.gpbControllerBoard.Controls.Add(this.btnFirmDirOpenBinC);
+            this.gpbControllerBoard.Controls.Add(this.btnFirmDirOpenHexC);
             this.gpbControllerBoard.Controls.Add(this.tbControlBoardVersion);
-            this.gpbControllerBoard.Controls.Add(this.btnBinFileChange);
-            this.gpbControllerBoard.Controls.Add(this.btnHexFileChange);
+            this.gpbControllerBoard.Controls.Add(this.btnBinFileChangeC);
+            this.gpbControllerBoard.Controls.Add(this.btnHexFileChangeC);
             this.gpbControllerBoard.Controls.Add(this.tbBinFilePathC);
             this.gpbControllerBoard.Controls.Add(this.tbHexFilePathC);
-            this.gpbControllerBoard.Controls.Add(this.btnEepromWrite);
-            this.gpbControllerBoard.Controls.Add(this.btnEepromRoad);
-            this.gpbControllerBoard.Controls.Add(this.btnFirmUpdate);
-            this.gpbControllerBoard.Location = new System.Drawing.Point(8, 44);
+            this.gpbControllerBoard.Controls.Add(this.btnEepromWriteC);
+            this.gpbControllerBoard.Controls.Add(this.btnEepromLoadC);
+            this.gpbControllerBoard.Controls.Add(this.btnFirmUpdateC);
+            this.gpbControllerBoard.Location = new System.Drawing.Point(8, 35);
             this.gpbControllerBoard.Name = "gpbControllerBoard";
-            this.gpbControllerBoard.Size = new System.Drawing.Size(1133, 166);
+            this.gpbControllerBoard.Size = new System.Drawing.Size(1133, 98);
             this.gpbControllerBoard.TabIndex = 103;
             this.gpbControllerBoard.TabStop = false;
             this.gpbControllerBoard.Text = "SELD Controller メイン制御基板";
@@ -5828,7 +5955,7 @@ namespace SELDController
             // 
             this.cbVersionListCBin.FormattingEnabled = true;
             this.cbVersionListCBin.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.cbVersionListCBin.Location = new System.Drawing.Point(156, 113);
+            this.cbVersionListCBin.Location = new System.Drawing.Point(22, 72);
             this.cbVersionListCBin.Name = "cbVersionListCBin";
             this.cbVersionListCBin.Size = new System.Drawing.Size(167, 20);
             this.cbVersionListCBin.TabIndex = 120;
@@ -5838,129 +5965,129 @@ namespace SELDController
             // 
             this.cbVersionListCHex.FormattingEnabled = true;
             this.cbVersionListCHex.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.cbVersionListCHex.Location = new System.Drawing.Point(156, 39);
+            this.cbVersionListCHex.Location = new System.Drawing.Point(22, 43);
             this.cbVersionListCHex.Name = "cbVersionListCHex";
             this.cbVersionListCHex.Size = new System.Drawing.Size(167, 20);
             this.cbVersionListCHex.TabIndex = 120;
-            this.cbVersionListCHex.SelectedIndexChanged += new System.EventHandler(this.cbVersionList_SelectedIndexChanged);
+            this.cbVersionListCHex.SelectedIndexChanged += new System.EventHandler(this.cbVersionListCHex_SelectedIndexChanged);
             // 
             // label114
             // 
             this.label114.AutoSize = true;
-            this.label114.Location = new System.Drawing.Point(31, 19);
+            this.label114.Location = new System.Drawing.Point(82, 19);
             this.label114.Name = "label114";
             this.label114.Size = new System.Drawing.Size(107, 12);
             this.label114.TabIndex = 106;
             this.label114.Text = "現在の制御基板Ver.";
             // 
-            // btnFirmBackup
+            // btnFirmBackupC
             // 
-            this.btnFirmBackup.Location = new System.Drawing.Point(329, 14);
-            this.btnFirmBackup.Name = "btnFirmBackup";
-            this.btnFirmBackup.Size = new System.Drawing.Size(130, 23);
-            this.btnFirmBackup.TabIndex = 100;
-            this.btnFirmBackup.Text = "ファームバックアップ";
-            this.btnFirmBackup.UseVisualStyleBackColor = true;
-            this.btnFirmBackup.Click += new System.EventHandler(this.btnFirmRoad_Click);
+            this.btnFirmBackupC.Location = new System.Drawing.Point(330, 14);
+            this.btnFirmBackupC.Name = "btnFirmBackupC";
+            this.btnFirmBackupC.Size = new System.Drawing.Size(131, 23);
+            this.btnFirmBackupC.TabIndex = 100;
+            this.btnFirmBackupC.Text = "ファームバックアップ";
+            this.btnFirmBackupC.UseVisualStyleBackColor = true;
+            this.btnFirmBackupC.Click += new System.EventHandler(this.btnFirmBackupC_Click);
             // 
-            // btnFirmDirOpenBin
+            // btnFirmDirOpenBinC
             // 
-            this.btnFirmDirOpenBin.Location = new System.Drawing.Point(33, 138);
-            this.btnFirmDirOpenBin.Name = "btnFirmDirOpenBin";
-            this.btnFirmDirOpenBin.Size = new System.Drawing.Size(75, 23);
-            this.btnFirmDirOpenBin.TabIndex = 97;
-            this.btnFirmDirOpenBin.Text = "フォルダを開く";
-            this.btnFirmDirOpenBin.UseVisualStyleBackColor = true;
-            this.btnFirmDirOpenBin.Click += new System.EventHandler(this.btnFirmDirOpenBin_Click);
+            this.btnFirmDirOpenBinC.Location = new System.Drawing.Point(330, 70);
+            this.btnFirmDirOpenBinC.Name = "btnFirmDirOpenBinC";
+            this.btnFirmDirOpenBinC.Size = new System.Drawing.Size(75, 23);
+            this.btnFirmDirOpenBinC.TabIndex = 97;
+            this.btnFirmDirOpenBinC.Text = "フォルダを開く";
+            this.btnFirmDirOpenBinC.UseVisualStyleBackColor = true;
+            this.btnFirmDirOpenBinC.Click += new System.EventHandler(this.btnFirmDirOpenBin_Click);
             // 
-            // btnFirmDirOpenHex
+            // btnFirmDirOpenHexC
             // 
-            this.btnFirmDirOpenHex.Location = new System.Drawing.Point(33, 63);
-            this.btnFirmDirOpenHex.Name = "btnFirmDirOpenHex";
-            this.btnFirmDirOpenHex.Size = new System.Drawing.Size(75, 23);
-            this.btnFirmDirOpenHex.TabIndex = 97;
-            this.btnFirmDirOpenHex.Text = "フォルダを開く";
-            this.btnFirmDirOpenHex.UseVisualStyleBackColor = true;
-            this.btnFirmDirOpenHex.Click += new System.EventHandler(this.btnFirmDirOpen_Click);
+            this.btnFirmDirOpenHexC.Location = new System.Drawing.Point(330, 41);
+            this.btnFirmDirOpenHexC.Name = "btnFirmDirOpenHexC";
+            this.btnFirmDirOpenHexC.Size = new System.Drawing.Size(75, 23);
+            this.btnFirmDirOpenHexC.TabIndex = 97;
+            this.btnFirmDirOpenHexC.Text = "フォルダを開く";
+            this.btnFirmDirOpenHexC.UseVisualStyleBackColor = true;
+            this.btnFirmDirOpenHexC.Click += new System.EventHandler(this.btnFirmDirOpenHexC_Click);
             // 
             // tbControlBoardVersion
             // 
-            this.tbControlBoardVersion.Location = new System.Drawing.Point(156, 16);
+            this.tbControlBoardVersion.Location = new System.Drawing.Point(193, 16);
             this.tbControlBoardVersion.Name = "tbControlBoardVersion";
-            this.tbControlBoardVersion.Size = new System.Drawing.Size(166, 19);
+            this.tbControlBoardVersion.Size = new System.Drawing.Size(131, 19);
             this.tbControlBoardVersion.TabIndex = 105;
             // 
-            // btnBinFileChange
+            // btnBinFileChangeC
             // 
-            this.btnBinFileChange.Location = new System.Drawing.Point(112, 138);
-            this.btnBinFileChange.Name = "btnBinFileChange";
-            this.btnBinFileChange.Size = new System.Drawing.Size(39, 23);
-            this.btnBinFileChange.TabIndex = 97;
-            this.btnBinFileChange.Text = "変更";
-            this.btnBinFileChange.UseVisualStyleBackColor = true;
-            this.btnBinFileChange.Click += new System.EventHandler(this.btnBinFileChange_Click);
+            this.btnBinFileChangeC.Location = new System.Drawing.Point(409, 70);
+            this.btnBinFileChangeC.Name = "btnBinFileChangeC";
+            this.btnBinFileChangeC.Size = new System.Drawing.Size(39, 23);
+            this.btnBinFileChangeC.TabIndex = 97;
+            this.btnBinFileChangeC.Text = "変更";
+            this.btnBinFileChangeC.UseVisualStyleBackColor = true;
+            this.btnBinFileChangeC.Click += new System.EventHandler(this.btnBinFileChange_Click);
             // 
-            // btnHexFileChange
+            // btnHexFileChangeC
             // 
-            this.btnHexFileChange.Location = new System.Drawing.Point(112, 63);
-            this.btnHexFileChange.Name = "btnHexFileChange";
-            this.btnHexFileChange.Size = new System.Drawing.Size(39, 23);
-            this.btnHexFileChange.TabIndex = 97;
-            this.btnHexFileChange.Text = "変更";
-            this.btnHexFileChange.UseVisualStyleBackColor = true;
-            this.btnHexFileChange.Click += new System.EventHandler(this.btnHexFileChange_Click);
+            this.btnHexFileChangeC.Location = new System.Drawing.Point(409, 41);
+            this.btnHexFileChangeC.Name = "btnHexFileChangeC";
+            this.btnHexFileChangeC.Size = new System.Drawing.Size(39, 23);
+            this.btnHexFileChangeC.TabIndex = 97;
+            this.btnHexFileChangeC.Text = "変更";
+            this.btnHexFileChangeC.UseVisualStyleBackColor = true;
+            this.btnHexFileChangeC.Click += new System.EventHandler(this.btnHexFileChange_Click);
             // 
             // tbBinFilePathC
             // 
             this.tbBinFilePathC.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.tbBinFilePathC.Location = new System.Drawing.Point(156, 139);
+            this.tbBinFilePathC.Location = new System.Drawing.Point(454, 72);
             this.tbBinFilePathC.Name = "tbBinFilePathC";
-            this.tbBinFilePathC.Size = new System.Drawing.Size(971, 19);
+            this.tbBinFilePathC.Size = new System.Drawing.Size(661, 19);
             this.tbBinFilePathC.TabIndex = 96;
             // 
             // tbHexFilePathC
             // 
             this.tbHexFilePathC.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.tbHexFilePathC.Location = new System.Drawing.Point(156, 65);
+            this.tbHexFilePathC.Location = new System.Drawing.Point(453, 43);
             this.tbHexFilePathC.Name = "tbHexFilePathC";
-            this.tbHexFilePathC.Size = new System.Drawing.Size(971, 19);
+            this.tbHexFilePathC.Size = new System.Drawing.Size(662, 19);
             this.tbHexFilePathC.TabIndex = 96;
             // 
-            // btnEepromWrite
+            // btnEepromWriteC
             // 
-            this.btnEepromWrite.Location = new System.Drawing.Point(329, 113);
-            this.btnEepromWrite.Name = "btnEepromWrite";
-            this.btnEepromWrite.Size = new System.Drawing.Size(130, 23);
-            this.btnEepromWrite.TabIndex = 95;
-            this.btnEepromWrite.Text = "EEPROM設定値書込";
-            this.btnEepromWrite.UseVisualStyleBackColor = true;
-            this.btnEepromWrite.Click += new System.EventHandler(this.btnEepromWrite_Click);
+            this.btnEepromWriteC.Location = new System.Drawing.Point(193, 70);
+            this.btnEepromWriteC.Name = "btnEepromWriteC";
+            this.btnEepromWriteC.Size = new System.Drawing.Size(131, 23);
+            this.btnEepromWriteC.TabIndex = 95;
+            this.btnEepromWriteC.Text = "EEPROM設定値書込";
+            this.btnEepromWriteC.UseVisualStyleBackColor = true;
+            this.btnEepromWriteC.Click += new System.EventHandler(this.btnEepromWrite_Click);
             // 
-            // btnEepromRoad
+            // btnEepromLoadC
             // 
-            this.btnEepromRoad.Location = new System.Drawing.Point(329, 88);
-            this.btnEepromRoad.Name = "btnEepromRoad";
-            this.btnEepromRoad.Size = new System.Drawing.Size(130, 23);
-            this.btnEepromRoad.TabIndex = 95;
-            this.btnEepromRoad.Text = "EEPROM設定値読出";
-            this.btnEepromRoad.UseVisualStyleBackColor = true;
-            this.btnEepromRoad.Click += new System.EventHandler(this.btnEepromRoad_Click);
+            this.btnEepromLoadC.Location = new System.Drawing.Point(467, 14);
+            this.btnEepromLoadC.Name = "btnEepromLoadC";
+            this.btnEepromLoadC.Size = new System.Drawing.Size(120, 23);
+            this.btnEepromLoadC.TabIndex = 95;
+            this.btnEepromLoadC.Text = "EEPROM設定値読出";
+            this.btnEepromLoadC.UseVisualStyleBackColor = true;
+            this.btnEepromLoadC.Click += new System.EventHandler(this.btnEepromRoadC_Click);
             // 
-            // btnFirmUpdate
+            // btnFirmUpdateC
             // 
-            this.btnFirmUpdate.Location = new System.Drawing.Point(329, 39);
-            this.btnFirmUpdate.Name = "btnFirmUpdate";
-            this.btnFirmUpdate.Size = new System.Drawing.Size(130, 23);
-            this.btnFirmUpdate.TabIndex = 95;
-            this.btnFirmUpdate.Text = "ファーム書込";
-            this.btnFirmUpdate.UseVisualStyleBackColor = true;
-            this.btnFirmUpdate.Click += new System.EventHandler(this.btnFirmUpdate_Click);
+            this.btnFirmUpdateC.Location = new System.Drawing.Point(193, 41);
+            this.btnFirmUpdateC.Name = "btnFirmUpdateC";
+            this.btnFirmUpdateC.Size = new System.Drawing.Size(131, 23);
+            this.btnFirmUpdateC.TabIndex = 95;
+            this.btnFirmUpdateC.Text = "ファーム書込";
+            this.btnFirmUpdateC.UseVisualStyleBackColor = true;
+            this.btnFirmUpdateC.Click += new System.EventHandler(this.btnFirmUpdateC_Click);
             // 
             // btnDriverInstall
             // 
-            this.btnDriverInstall.Location = new System.Drawing.Point(30, 16);
+            this.btnDriverInstall.Location = new System.Drawing.Point(30, 6);
             this.btnDriverInstall.Name = "btnDriverInstall";
             this.btnDriverInstall.Size = new System.Drawing.Size(130, 23);
             this.btnDriverInstall.TabIndex = 102;
@@ -5969,10 +6096,29 @@ namespace SELDController
             this.btnDriverInstall.Visible = false;
             this.btnDriverInstall.Click += new System.EventHandler(this.btnDriverInstall_Click);
             // 
+            // label118
+            // 
+            this.label118.AutoSize = true;
+            this.label118.Location = new System.Drawing.Point(11, 402);
+            this.label118.Name = "label118";
+            this.label118.Size = new System.Drawing.Size(521, 12);
+            this.label118.TabIndex = 99;
+            this.label118.Text = "※書き込みができなくなった場合、Arduinoのブートローダーの書き込みを行うことで復活する可能性があります。";
+            // 
+            // label117
+            // 
+            this.label117.AutoSize = true;
+            this.label117.Location = new System.Drawing.Point(11, 368);
+            this.label117.Name = "label117";
+            this.label117.Size = new System.Drawing.Size(638, 24);
+            this.label117.TabIndex = 99;
+            this.label117.Text = "※一部の変換コネクタや変換ケーブル、USBハブを使用すると電源容量不足によってマイコンが書き込みできず破損する場合があります。\r\n　PCと直接接続するケーブルを極" +
+    "力使用してください。";
+            // 
             // lblArduinoInstall
             // 
             this.lblArduinoInstall.AutoSize = true;
-            this.lblArduinoInstall.Location = new System.Drawing.Point(162, 21);
+            this.lblArduinoInstall.Location = new System.Drawing.Point(162, 11);
             this.lblArduinoInstall.Name = "lblArduinoInstall";
             this.lblArduinoInstall.Size = new System.Drawing.Size(498, 12);
             this.lblArduinoInstall.TabIndex = 99;
@@ -5982,7 +6128,7 @@ namespace SELDController
             // llArduinoIde
             // 
             this.llArduinoIde.AutoSize = true;
-            this.llArduinoIde.Location = new System.Drawing.Point(662, 21);
+            this.llArduinoIde.Location = new System.Drawing.Point(662, 11);
             this.llArduinoIde.Name = "llArduinoIde";
             this.llArduinoIde.Size = new System.Drawing.Size(135, 12);
             this.llArduinoIde.TabIndex = 98;
@@ -6345,6 +6491,7 @@ namespace SELDController
             // 
             // timerATSPBoardFinder
             // 
+            this.timerATSPBoardFinder.Interval = 500;
             this.timerATSPBoardFinder.Tick += new System.EventHandler(this.timerATSPBoardFinder_Tick);
             // 
             // btnSaveParamXml
@@ -6377,6 +6524,21 @@ namespace SELDController
             // 
             this.serialPortChecker.Interval = 500;
             this.serialPortChecker.Tick += new System.EventHandler(this.serialPortChecker_Tick);
+            // 
+            // timerControllerBoardFinder
+            // 
+            this.timerControllerBoardFinder.Interval = 500;
+            this.timerControllerBoardFinder.Tick += new System.EventHandler(this.timerControllerBoardFinder_Tick);
+            // 
+            // serialPortATSP
+            // 
+            this.serialPortATSP.BaudRate = 115200;
+            this.serialPortATSP.WriteTimeout = 1000;
+            // 
+            // toolTip1
+            // 
+            this.toolTip1.IsBalloon = true;
+            this.toolTip1.ShowAlways = true;
             // 
             // Form1
             // 
@@ -6532,8 +6694,12 @@ namespace SELDController
             this.tpFirmware.PerformLayout();
             this.gpbATSP.ResumeLayout(false);
             this.gpbATSP.PerformLayout();
+            this.pnlATSPBoard.ResumeLayout(false);
+            this.pnlATSPBoard.PerformLayout();
             this.gpbDispBoard.ResumeLayout(false);
             this.gpbDispBoard.PerformLayout();
+            this.pnlDispBoard.ResumeLayout(false);
+            this.pnlDispBoard.PerformLayout();
             this.gpbControllerBoard.ResumeLayout(false);
             this.gpbControllerBoard.PerformLayout();
             this.tpExtra.ResumeLayout(false);
@@ -6822,9 +6988,6 @@ namespace SELDController
         private System.Windows.Forms.TextBox tbSerialSend;
         private System.Windows.Forms.Label label54;
         private System.Windows.Forms.Label label57;
-        private System.Windows.Forms.DataGridViewTextBoxColumn numDataGridViewTextBoxColumn;
-        private System.Windows.Forms.DataGridViewTextBoxColumn nameDataGridViewTextBoxColumn;
-        private System.Windows.Forms.DataGridViewTextBoxColumn dataDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.Label label55;
         private System.Windows.Forms.TextBox tbEB;
@@ -6992,30 +7155,29 @@ namespace SELDController
         private System.Windows.Forms.CheckBox cbXmlCopy;
         private System.Windows.Forms.CheckBox cbSOUninstall;
         private System.Windows.Forms.CheckBox cbFVhold;
-        private System.Windows.Forms.Button btnFirmUpdate;
+        private System.Windows.Forms.Button btnFirmUpdateC;
         private System.Windows.Forms.TabPage tpFirmware;
-        private System.Windows.Forms.Button btnHexFileChange;
+        private System.Windows.Forms.Button btnHexFileChangeC;
         private System.Windows.Forms.TextBox tbHexFilePathC;
         private System.Windows.Forms.LinkLabel llArduinoIde;
         private System.Windows.Forms.Label lblArduinoInstall;
-        private System.Windows.Forms.Button btnEepromRoad;
-        private System.Windows.Forms.Button btnEepromWrite;
-        private System.Windows.Forms.Button btnFirmDirOpenHex;
-        private System.Windows.Forms.Button btnFirmBackup;
+        private System.Windows.Forms.Button btnEepromLoadC;
+        private System.Windows.Forms.Button btnEepromWriteC;
+        private System.Windows.Forms.Button btnFirmDirOpenHexC;
+        private System.Windows.Forms.Button btnFirmBackupC;
         private System.Windows.Forms.Button btnBveExDirOpen;
         private System.Windows.Forms.TabPage tpExtra;
         private System.Windows.Forms.Label label110;
         private System.Windows.Forms.Button btnDriverInstall;
         private System.Windows.Forms.GroupBox gpbControllerBoard;
         private System.Windows.Forms.GroupBox gpbDispBoard;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.Button button3;
-        private System.Windows.Forms.Button button4;
-        private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.Button button5;
-        private System.Windows.Forms.Button button6;
-        private System.Windows.Forms.Button button7;
+        private System.Windows.Forms.Button btnFirmBackupD;
+        private System.Windows.Forms.Button btnFirmDirOpenHexD;
+        private System.Windows.Forms.Button btnHexFileChangeD;
+        private System.Windows.Forms.TextBox tbHexFilePathD;
+        private System.Windows.Forms.Button btnEepromWriteD;
+        private System.Windows.Forms.Button btnEepromLoadD;
+        private System.Windows.Forms.Button btnFirmUpdateD;
         private System.IO.Ports.SerialPort serialPortDensei;
         private System.Windows.Forms.ComboBox cbPortSelectDensei;
         private System.Windows.Forms.Button btnOpenDensei;
@@ -7043,17 +7205,16 @@ namespace SELDController
         private System.Windows.Forms.Timer timerDispBoardFinder;
         private System.Windows.Forms.GroupBox gpbATSP;
         private System.Windows.Forms.Label label116;
-        private System.Windows.Forms.ComboBox comboBox1;
-        private System.Windows.Forms.Button button8;
-        private System.Windows.Forms.Button button9;
+        private System.Windows.Forms.ComboBox cbPortSelectATSP;
+        private System.Windows.Forms.Button btnOpenATSP;
         private System.Windows.Forms.TextBox tbATSPBoardVersion;
-        private System.Windows.Forms.Button button10;
-        private System.Windows.Forms.Button button11;
-        private System.Windows.Forms.Button button12;
-        private System.Windows.Forms.TextBox textBox3;
-        private System.Windows.Forms.Button button13;
-        private System.Windows.Forms.Button button14;
-        private System.Windows.Forms.Button button15;
+        private System.Windows.Forms.Button btnFirmBackupP;
+        private System.Windows.Forms.Button btnFirmDirOpenHexP;
+        private System.Windows.Forms.Button btnHexFileChangeP;
+        private System.Windows.Forms.TextBox tbHexFilePathP;
+        private System.Windows.Forms.Button btnEepromWriteP;
+        private System.Windows.Forms.Button btnEepromLoadP;
+        private System.Windows.Forms.Button btnFirmUpdateP;
         private System.Windows.Forms.Timer timerATSPBoardFinder;
         private System.Windows.Forms.CheckBox cbTransferEBState;
         private System.Windows.Forms.CheckBox cbBVEForceMode;
@@ -7065,8 +7226,25 @@ namespace SELDController
         private System.Windows.Forms.ComboBox cbVersionListCHex;
         private System.Windows.Forms.ComboBox cbVersionListCBin;
         private System.Windows.Forms.TextBox tbBinFilePathC;
-        private System.Windows.Forms.Button btnFirmDirOpenBin;
-        private System.Windows.Forms.Button btnBinFileChange;
+        private System.Windows.Forms.Button btnFirmDirOpenBinC;
+        private System.Windows.Forms.Button btnBinFileChangeC;
+        private System.Windows.Forms.Timer timerControllerBoardFinder;
+        private System.Windows.Forms.TextBox tbBinFilePathD;
+        private System.Windows.Forms.Button btnFirmDirOpenBinD;
+        private System.Windows.Forms.Button btnBinFileChangeD;
+        private System.Windows.Forms.ComboBox cbVersionListDHex;
+        private System.Windows.Forms.ComboBox cbVersionListDBin;
+        private System.Windows.Forms.Panel pnlDispBoard;
+        private System.Windows.Forms.Panel pnlATSPBoard;
+        private System.Windows.Forms.ComboBox cbVersionListPHex;
+        private System.Windows.Forms.ComboBox cbVersionListPBin;
+        private System.Windows.Forms.TextBox tbBinFilePathP;
+        private System.Windows.Forms.Button btnFirmDirOpenBinP;
+        private System.Windows.Forms.Button btnBinFileChangeP;
+        private System.IO.Ports.SerialPort serialPortATSP;
+        private System.Windows.Forms.Label label117;
+        private System.Windows.Forms.Label label118;
+        private System.Windows.Forms.ToolTip toolTip1;
     }
 }
 
