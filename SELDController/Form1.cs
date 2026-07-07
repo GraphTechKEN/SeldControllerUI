@@ -4420,29 +4420,17 @@ namespace SELDController
             // 1. パスを安全に結合してバックアップ先のフルパスを作成
             string baseDir = AppDomain.CurrentDomain.BaseDirectory; // 実行ファイルの場所 (bin等)
 
+            string buildPlatform = flgFirmWareATSPRW ? "MegaCoreX.megaavr.4809" : "arduino.avr.micro";
             string bakFilePath = Path.Combine(
                 baseDir,
                 "bin",
                 board_name,
-                currentVersion, // ← ここが変数になります
+                currentVersion,
                 board_name,
                 "build",
-                "arduino.avr.micro",
+                buildPlatform,
                 fileName
             );
-            if (flgFirmWareATSPRW)
-            {
-                bakFilePath = Path.Combine(
-                  baseDir,
-                  "bin",
-                  board_name,
-                  currentVersion, // ← ここが変数になります
-                  board_name,
-                  "build",
-                  "MegaCoreX.megaavr.4809",
-                  fileName
-                );
-            }
 
             // 2. ディレクトリの存在チェックと自動作成（フォルダがない場合のエラー防止）
             string directoryPath = Path.GetDirectoryName(bakFilePath);
@@ -4607,14 +4595,15 @@ namespace SELDController
             // 1. パスを安全に結合してバックアップ先のフルパスを作成
             string baseDir = AppDomain.CurrentDomain.BaseDirectory; // 実行ファイルの場所 (bin等)
 
+            string buildPlatform = flgFirmWareATSPRW ? "MegaCoreX.megaavr.4809" : "arduino.avr.micro";
             string bakFilePath = Path.Combine(
                 baseDir,
                 "bin",
                 board_name,
-                currentVersion, // ← ここが変数になります
+                currentVersion,
                 board_name,
                 "build",
-                "arduino.avr.micro",
+                buildPlatform,
                 fileName
             );
 
