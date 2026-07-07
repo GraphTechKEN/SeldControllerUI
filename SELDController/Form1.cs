@@ -318,26 +318,36 @@ namespace SELDController
                     // 3. 記憶したファイルリストの順序と「1対1」になるようにコンボボックスへ追加
                     foreach (string file in searchFiles)
                     {
-                        Match match = versionRegex.Match(file);
-                        if (match.Success)
+                        string versionText = "";
+
+                        // 【追加】パスの中に "\Blink\" というフォルダ名が含まれているか確認
+                        if (file.IndexOf(@"\Blink\", StringComparison.OrdinalIgnoreCase) >= 0)
                         {
-                            string versionText = match.Groups[1].Value;
-
-                            // 【変更】ファイル名の末尾に .bak が含まれていたら (backup) を追記
-                            if (file.EndsWith(".bak", StringComparison.OrdinalIgnoreCase))
-                            {
-                                versionText += " (backup)";
-                            }
-
-                            // コンボボックスへ追加
-                            cb.Items.Add(versionText);
+                            versionText = "Blink";
                         }
                         else
                         {
-                            // 万が一バージョンが正規表現にマッチしないファイルがあっても、
-                            // インデックスのズレを防ぐためにダミーを追加（エラー防止）
-                            cb.Items.Add("Unknown Version");
+                            // 従来の数値バージョン（A.B.C.D）の解析
+                            Match match = versionRegex.Match(file);
+                            if (match.Success)
+                            {
+                                versionText = match.Groups[1].Value;
+                            }
+                            else
+                            {
+                                // 万が一どちらにもマッチしない場合
+                                versionText = $"Unknown Version";
+                            }
                         }
+
+                        // 【変更】ファイル名の末尾に .bak が含まれていたら (backup) を追記
+                        if (file.EndsWith(".bak", StringComparison.OrdinalIgnoreCase))
+                        {
+                            versionText += " (backup)";
+                        }
+
+                        // コンボボックスへ追加
+                        cb.Items.Add(versionText);
                     }
 
                     if (cb.Items.Count > 0)
@@ -924,7 +934,7 @@ namespace SELDController
         {
 
 
-            if (data_.IndexOf("OK ") == 0)
+            if (data_.StartsWith("OK "))
             {
                 int.TryParse(data_.Substring(3, 3), out int addr);
                 if ((addr >= 0 && addr <= 10) || (addr >= 54 && addr <= 66))
@@ -936,7 +946,7 @@ namespace SELDController
 
                     for (int i = 0; i < strBrks2.Length; i++)
                     {
-                        if (data_.IndexOf(strBrks2[i]) == 0)
+                        if (data_.StartsWith(strBrks2[i]))
                         {
                             int.TryParse(data_.Substring(strBrks2[i].Length), out int d);
                             Control_Input(data_, txtBoxes2[i]);
@@ -1114,6 +1124,7 @@ namespace SELDController
                         Name = "制御基板チェック";
                         flgSeldControllerFound = true;
                         flgFirstReadCheck = true;
+                        flgNoFirm = false;
                         break;
 
                     case 102:
@@ -1463,14 +1474,16 @@ namespace SELDController
 
         private void UpdateParamList(string ParamNum, string ParamName, string Value)
         {
-            // paramList 更新
+            // 1. 一致するパラメータを検索
             var existingParam = paramList.FirstOrDefault(p => p.Num == ParamNum);
+            // 2. 既存データの更新（
             if (existingParam != null)
             {
                 existingParam.Data = Value;
             }
+            // 3.存在しない場合は新規追加
             else
-            {                    // 存在しない場合は新規追加
+            {                    
                 paramList.Add(new ParamData(num: ParamNum, name: ParamName, data: Value));
             }
         }
@@ -1515,6 +1528,10 @@ namespace SELDController
             {
                 serialPortDenseiClose();
             }
+            if (serialPortATSP.IsOpen)
+            {
+                serialPortATSPClose();
+            }
 
             if ((btnSpdRead.BackColor == SystemColors.Control) && btnSpdRead.BackColor == SystemColors.Control)
             {
@@ -1531,8 +1548,6 @@ namespace SELDController
                 CommandWrite(messageTextBox1.Text);
             }
         }
-
-
 
         private void toolStripMenuItemExit_Click(object sender, EventArgs e)
         {
@@ -5088,13 +5103,16 @@ namespace SELDController
             }
             cbPortSelectDensei.Enabled = true;
             setSerialComboBox(cbPortSelectDensei, Settings.Default.portNameDensei);
-            btnOpenDensei.Text = "通信開始";
-            btnSerialPortOpenDensei.Enabled = true;
-            pnlDispBoard.Enabled = false;
-            btnFirmBackupD.Enabled = false;
-            btnEepromLoadD.Enabled = false;
-            flgSerialPortOpenDensei = false;
-            cbPortSelectDensei.Enabled = true;
+            if (btnSerialPortOpenDensei.Visible)
+            {
+                btnOpenDensei.Text = "通信開始";
+                btnSerialPortOpenDensei.Enabled = true;
+                pnlDispBoard.Enabled = false;
+                btnFirmBackupD.Enabled = false;
+                btnEepromLoadD.Enabled = false;
+                flgSerialPortOpenDensei = false;
+                cbPortSelectDensei.Enabled = true;
+            }
         }
 
         private void serialPortDenseiOpen()
