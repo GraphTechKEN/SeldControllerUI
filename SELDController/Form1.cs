@@ -9,13 +9,11 @@ using System.IO.Pipes;
 using System.IO.Ports;
 using System.Linq;
 using System.Management;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
 using System.Xml.Serialization;
 
 //32bit Only
@@ -560,7 +558,7 @@ namespace SELDController
             {                
                 send_error = false;
                 serialPort1Open();
-                CommandWrite("MON 0");
+                //CommandWrite("MON 0");
                 CommandWrite("RD 100");//制御基板状態確認
                 CommandWrite("RD 090");//制御基板バージョン確認
                 timerControllerBoardFinder.Start();
@@ -755,168 +753,120 @@ namespace SELDController
             CommandWrite(messageTextBox1.Text);
         }
 
-        /****************************************************************************/
-        /*!
-         * serialPort1でデータを受信すると実行されます。
-         * スレッドが異なるので、Invokeを使う。
-         * BeginInvokeでやったほうがいいらしい
-         * http://kana-soft.com/tech/sample_0007_4.htm
-         */
+        // クラスのメンバ変数として定義（受信バッファ）
+        private StringBuilder rxBuffer = new StringBuilder();
+
         private void serialPort1_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             timer1.Stop();
-            // 受信したデータ
-            string data = serialPortMain.ReadExisting(); ;
-            // 異なるスレッドのテキストボックスに書き込む
 
-            BeginInvoke(new Delegate_write(write), new Object[] { data });
+            // 受信したデータをすべて取得
+            string rawData = serialPortMain.ReadExisting();
+
+            // UIスレッドで安全に解析・処理を行う
+            BeginInvoke(new Action(() => ProcessReceivedData(rawData)));
+        }
+        // ⚠️ このメソッドは BeginInvoke により【UIスレッド】で実行されます
+        private void ProcessReceivedData(string rawData)
+        {
+            if (string.IsNullOrEmpty(rawData)) return;
+
+            // バッファに新着データを追加
+            rxBuffer.Append(rawData);
+
+            string bufferStr = rxBuffer.ToString();
+            int newlineIndex;
+
+            // バッファ内に改行コード（\n または \r）がある間、ループで1行ずつ切り出す
+            while ((newlineIndex = bufferStr.IndexOfAny(new char[] { '\r', '\n' })) >= 0)
+            {
+                // 1行分のデータを抽出（改行の手前まで）
+                string line = bufferStr.Substring(0, newlineIndex).Trim();
+
+                // 処理した分のデータをバッファから削除
+                // \r\n のように連続している場合のケアを含めてインデックスを進める
+                int skipLength = 1;
+                if (newlineIndex + 1 < bufferStr.Length &&
+                    ((bufferStr[newlineIndex] == '\r' && bufferStr[newlineIndex + 1] == '\n') ||
+                     (bufferStr[newlineIndex] == '\n' && bufferStr[newlineIndex + 1] == '\r')))
+                {
+                    skipLength = 2;
+                }
+
+                bufferStr = bufferStr.Substring(newlineIndex + skipLength);
+                rxBuffer.Clear();
+                rxBuffer.Append(bufferStr);
+
+                // 空行でなければデータ処理を実行
+                if (!string.IsNullOrEmpty(line))
+                {
+                    ExecuteLineCommand(line);
+                }
+            }
+
+            // --- 元のコードの末尾にあった部分的な文字列判定処理 ---
+            // ※細切れデータ対策のため、生データ(rawData)ではなく蓄積データで見る必要がありますが、
+            // 暫定的に元のロジックを維持（必要に応じて上記ループ内に移動してください）
+            if (cbModeN.Checked && rawData.Length < 7)
+            {
+                lblBrkNotch.Text = rawData;
+            }
+            int positionTimeStart = rawData.IndexOf("Time:");
+            int positionTimeEnd = rawData.IndexOf("sec");
+            if (positionTimeStart > 0 && positionTimeEnd > positionTimeStart)
+            {
+                // txtBoxLevel.Text = rawData.Substring(positionTimeStart + 5, positionTimeEnd - positionTimeStart - 5);
+            }
         }
 
-        /****************************************************************************/
-        /*!
-         * logTextBoxに受信内容を書き込みます。
-         */
-
-        //デリミタ(終端文字列)がない場合の文字列格納用
-        private string data_temp_next;
-        private void write(string data)
+        // 1行（改行ごと）のパースとUI更新、ビジネスロジック
+        private void ExecuteLineCommand(string data_disp)
         {
-            if (data != null)
+            // すでにUIスレッド上なので、Invokeなしで直接テキストボックスを更新可能
+            tbSerialRcv.Text = data_disp;
+            // tbSerialRcv.Update(); // ※フリーズの原因になるため通常は不要。描画が遅れる場合のみ残す。
+
+            if (checkBox1.Checked)
             {
+                AppendLog("Read : " + data_disp + "\r\n");
+            }
 
-
-                //文字列処理用の一時仮格納用
-                string data_temp = data;
-                //ログ出力用
-                string data_disp = "";
-                //デリミタ(終端文字列)がある場合
-                if (data.Length >= 2)
+            // データの詳細解析
+            if (data_disp.Length > 5 && !data_disp.StartsWith("OK POT") && data_disp.StartsWith("Pot"))
+            {
+                if (flgAdjN)
                 {
-                    if (data.Substring(data.Length - 2) == "\r\n")
+                    flgAdjN = false;
+                    if (int.TryParse(data_disp.Substring(7, 4), out int iAdjN))
                     {
-
-                        //MessageBox.Show("match");
-                        //一時仮格納用文字列とデリミタなし文字列を一時結合
-                        data_temp = data_temp_next + data_temp;
-                        string data_analys = data_temp;
-                        while (data_temp != null)
+                        if (MessageBox.Show($"このポテンショ値({iAdjN})を角度0°に設定します", "N位置設定", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.OK)
                         {
-                            //\rで文字列を切断
-                            if (data_temp.IndexOf("\r") > 0)
-                            {
-                                int i = data_temp.IndexOf("\r");
-                                data_disp = data_temp.Substring(0, i).Trim();
-                                data_temp = data_temp.Substring(i).Trim();
-                                // --- ここからUIの更新（安全にInvokeで行う） ---
-                                tbSerialRcv.Invoke(new Action(() =>
-                                {
-                                    tbSerialRcv.Text = data_disp;
-                                    tbSerialRcv.Update(); // 確実にその場で描画を更新させる
-                                }));
-
-                                if (data_disp.Length > 5)
-                                {
-                                    if (!data_disp.StartsWith("OK POT") && data_disp.StartsWith("Pot"))
-                                    {
-                                        if (flgAdjN)
-                                        {
-                                            flgAdjN = false;
-                                            int.TryParse(data_disp.Substring(7, 4), out int iAdjN);
-                                            if (MessageBox.Show("このポテンショ値(" + iAdjN.ToString() + ")を角度0°に設定します", "N位置設定", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.OK)
-                                            {
-                                                tbAdjN.Text = iAdjN.ToString();
-                                                AdjN();
-                                                Thread.Sleep(50);
-                                            }
-                                            CommandWrite("MD POT 0", true);
-                                        }
-                                        if (flgAdjEB)
-                                        {
-                                            flgAdjEB = false;
-                                            int.TryParse(data_disp.Substring(7, 4), out int iAdjEB);
-                                            if (MessageBox.Show("このポテンショ値(" + iAdjEB.ToString() + ")を角度165°に設定します", "EB位置設定", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.OK)
-                                            {
-                                                tbAdjEB.Text = iAdjEB.ToString();
-                                                AdjEB();
-                                                Thread.Sleep(50);
-                                            }
-                                            CommandWrite("MD POT 0", true);
-                                        }
-                                    }
-                                }
-
-                                //ログ出力チェックボックスがチェックされている場合
-                                if (checkBox1.Checked)
-                                {
-                                    AppendLog("Read : " + data_disp + "\r\n");
-                                }
-
-                                read_Settings(data_analys, data_disp);
-                            }
-                            //文字列切断後、最後の文字列の処理
-                            else
-                            {
-
-                                if (data_temp != "")
-                                {
-                                    data_disp = data_temp.Trim();
-                                    // --- ここからUIの更新（安全にInvokeで行う） ---
-                                    tbSerialRcv.Invoke(new Action(() =>
-                                    {
-                                        tbSerialRcv.Text = data_disp;
-                                        tbSerialRcv.Update(); // 確実にその場で描画を更新させる
-                                        if (checkBox1.Checked)
-                                        {
-                                            AppendLog("Read : " + data_disp + "\r\n");
-                                        }
-                                    }));
-
-                                    read_Settings(data_analys, data_disp);
-                                }
-                                data_temp = null;
-                            }
-
-
-                            //仮格納用文字列をnull(空)にする
-                            data_temp_next = null;
+                            tbAdjN.Text = iAdjN.ToString();
+                            AdjN();
+                            Thread.Sleep(50);
                         }
                     }
-                    //デリミタ(終端文字列)がない場合
-                    else
+                    CommandWrite("MD POT 0", true);
+                }
+
+                if (flgAdjEB)
+                {
+                    flgAdjEB = false;
+                    if (int.TryParse(data_disp.Substring(7, 4), out int iAdjEB))
                     {
-
-                        //MessageBox.Show("not match:"+data );
-                        //仮格納用文字列に文字列を一時保管する
-                        data_temp_next += data;
-
+                        if (MessageBox.Show($"このポテンショ値({iAdjEB})を角度165°に設定します", "EB位置設定", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.OK)
+                        {
+                            tbAdjEB.Text = iAdjEB.ToString();
+                            AdjEB();
+                            Thread.Sleep(50);
+                        }
                     }
+                    CommandWrite("MD POT 0", true);
                 }
-                //デリミタ(終端文字列)がない場合
-                else
-                {
-
-                    //MessageBox.Show("not match");
-                    //仮格納用文字列に文字列を一時保管する
-                    data_temp_next += data;
-
-                }
-
-
-                if (cbModeN.Checked && data.Length < 7)
-                {
-                    lblBrkNotch.Text = data;
-                }
-                /*StringReader rs = new System.IO.StringReader(data);
-                tbSerialRcv.Text = rs.ReadLine();*/
-                int positionTimeStart = data.IndexOf("Time:");
-                int positionTimeEnd = data.IndexOf("sec");
-                int positionTimeLength = positionTimeEnd - positionTimeStart;
-                if (positionTimeStart > 0)
-                {
-                    //txtBoxLevel.Text = data.Substring(positionTimeStart + 5, positionTimeLength - 5);
-                }
-
             }
+
+            // 第一引数(全体)と第二引数(分割後)の整合性を保つため、この行の内容を両方に渡す
+            read_Settings(data_disp);
         }
 
         private int Control_Input(string inputText, Control control)
@@ -930,7 +880,7 @@ namespace SELDController
 
         }
 
-        private void read_Settings(string data_all_, string data_)
+        private void read_Settings(string data_)
         {
 
 
@@ -973,19 +923,19 @@ namespace SELDController
                 }
             }
 
-            if (data_all_.IndexOf("OK ") == 0)
+            if (data_.IndexOf("OK ") == 0)
             {
                 string Name = "";
                 //デバイスアドレスを取得
-                int.TryParse(data_all_.Substring(3,3), out int addr);
+                int.TryParse(data_.Substring(3,3), out int addr);
                 //デバイス値を取得
-                int.TryParse(data_all_.Substring(7), out int val);
+                int.TryParse(data_.Substring(7), out int val);
 
                 switch (addr)
                 {
                     case 44://最高速度
                         Name = "最高速度[km/h]";
-                        Control_Input(data_all_, tbLimit);
+                        Control_Input(data_, tbLimit);
                         Limit_Setting(true);
                         break;
 
@@ -1003,7 +953,7 @@ namespace SELDController
 
                     case 52://列車抵抗
                         Name = "列車抵抗[Ω]";
-                        Control_Input(data_all_, tbOhm);
+                        Control_Input(data_, tbOhm);
                         break;
 
 
@@ -1016,13 +966,13 @@ namespace SELDController
 
                     case 70: //マスコン段数(コントローラー)
                         Name = "マスコン段数(コントローラー)";
-                        Control_Input(data_all_, tbMcNumMax);
+                        Control_Input(data_, tbMcNumMax);
                         tbMcNumMaxTop.Text = tbMcNumMax.Text;
                         break;
 
                     case 72://マスコン段数(BVE車両側)
                         Name = "マスコン段数(BVE車両側)";
-                        Control_Input(data_all_, tbMcNum);
+                        Control_Input(data_, tbMcNum);
                         tbMcNumTop.Text = tbMcNum.Text;
                         break;
 
@@ -1066,7 +1016,7 @@ namespace SELDController
 
                     case 84://ATS電源角度
                         Name = "ATS電源角度[°]";
-                        Control_Input(data_all_, tbATSDengenAngle);
+                        Control_Input(data_, tbATSDengenAngle);
                         break;
 
                     case 90://基板種類                        
@@ -1094,7 +1044,7 @@ namespace SELDController
 
                     case 92:
                         Name = "Major << 8 | Minor(制御基板)";
-                        String s = data_all_.Substring(7).Trim();
+                        String s = data_.Substring(7).Trim();
                         int.TryParse(s, out int d);
                         C_VERSION_MINOR = val >> 8;
                         C_VERSION_MAJOR = val & 0xFF;
@@ -1129,37 +1079,37 @@ namespace SELDController
 
                     case 102:
                         Name = "FV Min";
-                        Control_Input(data_all_, tbFVMin);
+                        Control_Input(data_, tbFVMin);
                         break;
 
                     case 104:
                         Name = "FV Max";
-                        Control_Input(data_all_, tbFVMax);
+                        Control_Input(data_, tbFVMax);
                         break;
 
                     case 106:
                         Name = "BP Min";
-                        Control_Input(data_all_, tbBPMin);
+                        Control_Input(data_, tbBPMin);
                         break;
 
                     case 108:
                         Name = "BP Max";
-                        Control_Input(data_all_, tbBPMax);
+                        Control_Input(data_, tbBPMax);
                         break;
 
                     case 110:
                         Name = "BC Min";
-                        Control_Input(data_all_, tbBCMin);
+                        Control_Input(data_, tbBCMin);
                         break;
 
                     case 112://平均化率
                         Name = "平均化率";
-                        Control_Input(data_all_, tbAveRatio);
+                        Control_Input(data_, tbAveRatio);
                         break;
 
                     case 114:
                         Name = "モニタ間隔[msec]";
-                        Control_Input(data_all_, tbMonInterval);
+                        Control_Input(data_, tbMonInterval);
                         break;
 
                     case 116:
@@ -1172,35 +1122,35 @@ namespace SELDController
 
                     case 118:
                         Name = "EBしきい値[kPa]";
-                        Control_Input(data_all_, tbEBThreshold);
+                        Control_Input(data_, tbEBThreshold);
                         break;
                     
                     case 124:
                         Name = "FVPress Min [kPa]";
-                        Control_Input(data_all_, tbFVPressMin);
+                        Control_Input(data_, tbFVPressMin);
                         break;
 
                     case 126:
                         Name = "FVPress Max [kPa]";
-                        Control_Input(data_all_, tbFVPressMax);
+                        Control_Input(data_, tbFVPressMax);
                         break;
                     case 128:
                         Name = "BPPress Min [kPa]";
-                        Control_Input(data_all_, tbBPPressMin);
+                        Control_Input(data_, tbBPPressMin);
                         break;
                     case 130:
                         Name = "BPPress Max [kPa]";
-                        Control_Input(data_all_, tbBPPressMax);
+                        Control_Input(data_, tbBPPressMax);
                         break;
                     
                     case 132://BC最大圧力(急動部動作時)
                         Name = "BC最大圧力(急動部動作時)[kPa]";
-                        Control_Input(data_all_, tbBCMax);
+                        Control_Input(data_, tbBCMax);
                         break;
                     
                     case 134://BC最大圧力(常用時)
                         Name = "BC最大圧力(常用時)[kPa]";
-                        Control_Input(data_all_, tbBCMaxNorm);
+                        Control_Input(data_, tbBCMaxNorm);
                         break;
                     
                     case 136://BC倍率(急動部動作時)
@@ -1252,7 +1202,7 @@ namespace SELDController
 
                     case 146://BC最大圧力(E制御弁)
                         Name = "BC最大圧力(E制御弁)[kPa]";
-                        Control_Input(data_all_, tbBCMaxE);
+                        Control_Input(data_, tbBCMaxE);
                         break;
                     
                     case 148://BC倍率(E制御弁)
@@ -1265,7 +1215,7 @@ namespace SELDController
 
                     
                     case 150://平均化率(E制御弁)
-                        Control_Input(data_all_, tbAveRatioE);
+                        Control_Input(data_, tbAveRatioE);
                         break;
                    
                     case 152: //E電磁弁遅延時間
@@ -1323,6 +1273,7 @@ namespace SELDController
                         break;
 
                     case 192:
+                        timerDispBoardFinder.Stop();
                         Name = "Major << 8 | Minor(電制表示灯基板)";
                         D_VERSION_MINOR = val >> 8;
                         D_VERSION_MAJOR = val & 0xFF;
@@ -1330,6 +1281,7 @@ namespace SELDController
                         break;
 
                     case 194:
+                        timerDispBoardFinder.Stop();
                         Name = "Patch << 8 | Build(電制表示灯基板)";
                         D_VERSION_BUILD = val >> 8;
                         D_VERSION_PATCH = val & 0xFF;
@@ -1443,7 +1395,7 @@ namespace SELDController
             }
             
             //FV BP読出し
-            else if (data_all_.StartsWith("FV(V)="))
+            else if (data_.StartsWith("FV(V)="))
             {
                 tbFV_V.Text = data_.Substring(data_.IndexOf("FV(V)=") + 6, 4);
                 tbBP_V.Text = data_.Substring(data_.IndexOf("BP(V)=") + 6, 4);
@@ -4415,7 +4367,8 @@ namespace SELDController
         private async Task FirmBackup(string version_num, string board_name,string fileName)
         {
             // 仮のバージョン変数（実際には既に取得済みの変数名に置き換えてください）
-            string currentVersion = version_num;
+            // 三項演算子を使って、nullまたは空文字なら "default" を代入
+            string currentVersion = string.IsNullOrEmpty(version_num) ? "0.0.0.0" : version_num;
 
             // 1. パスを安全に結合してバックアップ先のフルパスを作成
             string baseDir = AppDomain.CurrentDomain.BaseDirectory; // 実行ファイルの場所 (bin等)
@@ -4590,7 +4543,8 @@ namespace SELDController
         private async void EepromLoad(string version_num, string board_name, string fileName)
         {
             // 仮のバージョン変数（実際には既に取得済みの変数名に置き換えてください）
-            string currentVersion = version_num;
+            // 三項演算子を使って、nullまたは空文字なら "default" を代入
+            string currentVersion = string.IsNullOrEmpty(version_num) ? "0.0.0.0" : version_num;
 
             // 1. パスを安全に結合してバックアップ先のフルパスを作成
             string baseDir = AppDomain.CurrentDomain.BaseDirectory; // 実行ファイルの場所 (bin等)
@@ -4658,6 +4612,14 @@ namespace SELDController
 
         private async Task AvrWriter_32u4(string read_or_write, string flash_or_eeprom, string contents, string filepath)
         {
+            // ★追加: avrdudePath の存在チェック
+            if (!File.Exists(avrdudePath))
+            {
+                AppendLog($"エラー: avrdude が見つかりません。パス: {avrdudePath}\r\n");
+                MessageBox.Show($"avrdude が見つからないため、処理を中断しました。\nパス: {avrdudePath}",
+                                "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return; // 処理を実行せずに終了
+            }
             //string configPath = @".\avrdude\avrdude.conf";
             string configPath = @".\avrdude\8.0.0-arduino1\etc\avrdude.conf";
             string mcu = "atmega32u4";
@@ -4710,7 +4672,7 @@ namespace SELDController
                 while (retryCount < 20 && foundPort == null)
                 {
                     await Task.Delay(500);
-                    Thread.Sleep(500);
+
                     using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PnPEntity WHERE Name LIKE '%(COM%)'"))
                     {
                         foreach (ManagementObject device in searcher.Get())
@@ -4827,6 +4789,14 @@ namespace SELDController
 
         private async Task AvrWriter_4809(string read_or_write, string flash_or_eeprom, string contents, string filepath)
         {
+            // ★追加: avrdudePath の存在チェック
+            if (!File.Exists(avrdudePath))
+            {
+                AppendLog($"エラー: avrdude が見つかりません。パス: {avrdudePath}\r\n");
+                MessageBox.Show($"avrdude が見つからないため、処理を中断しました。\nパス: {avrdudePath}",
+                                "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return; // 処理を実行せずに終了
+            }
             //string configPath = @".\avrdude\avrdude.conf";
             string configPath = @".\avrdude\8.0.0-arduino1\etc\avrdude.conf";
             string mcu = "atmega4809";
@@ -5404,17 +5374,38 @@ namespace SELDController
 
         private void FileChange(TextBox tb, string title, string filter)
         {
-            using (OpenFileDialog ofdHexFileChange = new OpenFileDialog())
+            try
             {
-                ofdHexFileChange.Title = title;
-                ofdHexFileChange.Filter = filter;
-                ofdHexFileChange.InitialDirectory = Path.GetDirectoryName(tb.Text);
-
-                if (ofdHexFileChange.ShowDialog() == DialogResult.OK)
+                using (OpenFileDialog ofdHexFileChange = new OpenFileDialog())
                 {
-                    // 選択されたファイルパスをラベルに表示
-                    tb.Text = $"{ofdHexFileChange.FileName}";
+                    ofdHexFileChange.Title = title;
+                    ofdHexFileChange.Filter = filter;
+
+                    // テキストボックスに入力がある場合のみ初期ディレクトリを設定
+                    if (!string.IsNullOrWhiteSpace(tb.Text))
+                    {
+                        string dir = Path.GetDirectoryName(tb.Text);
+                        if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir))
+                        {
+                            ofdHexFileChange.InitialDirectory = dir;
+                        }
+                    }
+
+                    if (ofdHexFileChange.ShowDialog() == DialogResult.OK)
+                    {
+                        tb.Text = ofdHexFileChange.FileName;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                // エラーメッセージをポップアップ表示
+                MessageBox.Show(
+                    $"ファイルの選択中にエラーが発生しました。\n詳細: {ex.Message}",
+                    "エラー",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
             }
         }
 
@@ -5862,13 +5853,12 @@ namespace SELDController
                                 string numStr = param.Num.PadLeft(3, '0');  // 不足分を0で埋める
 
                                 // "OK Num Data" の形式で文字列を構築
-                                string data_all_ = $"OK {numStr} {param.Data}";
-                                string data_ = data_all_;
+                                string data_ = $"OK {numStr} {param.Data}";
 
                                 // read_Settings() を呼び出す
-                                read_Settings(data_all_, data_);
+                                read_Settings(data_);
 
-                                AppendLog($"読込: {data_all_}\r\n");
+                                AppendLog($"読込: {data_}\r\n");
                             }
                             catch (Exception itemEx)
                             {
