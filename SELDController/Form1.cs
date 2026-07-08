@@ -4449,52 +4449,94 @@ namespace SELDController
 
             targetComPort = targetComPort.ToUpper();
 
-            // WMIクエリでCOMポート情報を取得
-            using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PnPEntity"))
+            // 状態を管理するフラグ
+            bool isArduinoDevice = false;
+            bool isDriverMissing = false;
+
+            using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PnPEntity WHERE Name LIKE '%(COM%)'")) // COMポートのみに絞り込んで高速化
             {
                 foreach (var device in searcher.Get())
                 {
                     string name = device["Name"]?.ToString();
                     string deviceId = device["DeviceID"]?.ToString();
 
-                    // 指定されたCOMポート番号を含むデバイスを検索
-                    if (!string.IsNullOrEmpty(name) && name.Contains(targetComPort))
+                    if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(deviceId)) continue;
+
+                    // 指定されたCOMポート番号（例: "COM3"）が含まれているか確認
+                    if (name.Contains(targetComPort))
                     {
+                        string vid = ExtractValue(deviceId, "VID_");
+                        string pid = ExtractValue(deviceId, "PID_");
 
-                        // PIDとVIDを抽出
-                        if (!string.IsNullOrEmpty(deviceId))
+                        // Substringによるエラーを防ぐため、4文字以上あるかチェック
+                        if (pid.Length >= 4)
                         {
-                            string vid = ExtractValue(deviceId, "VID_");
-                            string pid = ExtractValue(deviceId, "PID_").Substring(0, 4);
+                            pid = pid.Substring(0, 4);
+                        }
 
-                            if (vid == "2341" &&(pid == "8037" || pid == "0058"))
+                        // 【修正】文字列として比較（" " で囲む）
+                        if (vid == "2341" && (pid == "8037" || pid == "0058"))
+                        {
+                            // 【修正】ループ内ではフラグの更新のみを行う
+                            if (name.StartsWith("Arduino"))
                             {
-                                //Arduinoが認識されているかを判別
-                                if (name.StartsWith("Arduino"))
-                                {
-                                    llArduinoIde.Visible = false;
-                                    lblArduinoInstall.Visible = false;
-                                    found = true;
-                                }
-                                else
-                                {
-                                    MessageBox.Show("Arduinoを認識しましたが、ドライバが見つかりません。\n\nArduino IDEをインストールしてください。");
-                                    llArduinoIde.Visible = true;                                    
-                                    lblArduinoInstall.Visible = true;
-                                    btnDriverInstall.Visible = true;
-                                    flgDriverinstall = true;
-                                    DriverInstall();
-                                }
+                                isArduinoDevice = true;
+                                break; // 正規のArduinoが見つかったらループを抜ける
                             }
-
+                            else
+                            {
+                                isDriverMissing = true; // デバイスはあるがドライバがない状態
+                            }
                         }
                     }
                 }
+            }
 
-                if (!found && !flgDriverinstall)
+            // 【修正】すべての検索が終わった後に、結果に応じたUI処理を行う
+            if (isArduinoDevice)
+            {
+                // パターンA: 正規のArduinoとして認識されている場合
+                llArduinoIde.Visible = false;
+                lblArduinoInstall.Visible = false;
+
+                found = true; // 👈【共通化】接続成功時の処理を実行
+            }
+            else if (isDriverMissing)
+            {
+                // パターンB: デバイスはあるがドライバがない（名前がArduinoから始まらない）場合
+                // 【修正】「はい / いいえ」の選択肢を表示
+                DialogResult result = MessageBox.Show(
+                    "Arduinoを認識しましたが、ドライバがインストールされていない可能性があります。\n\n" +
+                    "ドライバをインストールしていない場合、正常に動作しない恐れがあります。\n" +
+                    "このまま接続を続行しますか？\n\n" +
+                    "※続行しない場合は、ドライバのインストール案内を表示します。",
+                    "ドライバ未検出の警告",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning
+                );
+
+                if (result == DialogResult.Yes)
                 {
-                    MessageBox.Show("Arduinoではないため接続ができません。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    // 【修正】ユーザーが「はい」を選んだら、案内を隠して接続処理へ進む
+                    llArduinoIde.Visible = false;
+                    lblArduinoInstall.Visible = false;
+
+                    found = true; // 👈【共通化】接続成功時の処理を実行
                 }
+                else
+                {
+                    // 【修正】ユーザーが「いいえ」を選んだら、従来通りインストールを促す
+                    llArduinoIde.Visible = true;
+                    lblArduinoInstall.Visible = true;
+                    btnDriverInstall.Visible = true;
+                    flgDriverinstall = true;
+                    DriverInstall();
+                }
+            }
+            else
+            {
+                // パターンC: 指定COMポートにArduino自体が見つからない場合
+                MessageBox.Show("Arduinoではないため接続ができません。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -5059,17 +5101,18 @@ namespace SELDController
                 serialPortDensei.DiscardInBuffer();
                 serialPortDensei.DiscardOutBuffer();
                 serialPortDensei.Close();
+                btnOpenDensei.Text = "通信開始";
+                btnSerialPortOpenDensei.Enabled = true;
+                flgSerialPortOpenDensei = false;
             }
             cbPortSelectDensei.Enabled = true;
             setSerialComboBox(cbPortSelectDensei, Settings.Default.portNameDensei);
             if (btnSerialPortOpenDensei.Visible)
             {
-                btnOpenDensei.Text = "通信開始";
-                btnSerialPortOpenDensei.Enabled = true;
                 pnlDispBoard.Enabled = false;
                 btnFirmBackupD.Enabled = false;
                 btnEepromLoadD.Enabled = false;
-                flgSerialPortOpenDensei = false;
+
                 cbPortSelectDensei.Enabled = true;
             }
         }
