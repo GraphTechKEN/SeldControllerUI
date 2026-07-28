@@ -4322,15 +4322,7 @@ namespace SELDController
             ArduinoFinder(out bool found);
             if (found)
             {
-                // 第3引数は "hex" に変更
-                if (flgFirmWareATSPRW)
-                {
-                    await AvrWriter_4809("write", "flash", "ファームウェアの書き込み", tbHexFilePathC.Text);
-                }
-                else
-                {
-                    await AvrWriter_32u4("write", "flash", "ファームウェアの書き込み", tbHexFilePathC.Text);
-                }
+                await AvrWriter_32u4("write", "flash", "ファームウェアの書き込み", tbHexFilePathC.Text);
             }
             else
             {
@@ -4436,10 +4428,26 @@ namespace SELDController
             string targetComPort = serialPortMain.PortName;
             if (flgFirmWareDenseiRW)
             {
+                if(gpbControllerBoard.Enabled)
+                {
+                    targetComPort = serialPortDensei.PortName;
+                }
+                else
+                {
+                    targetComPort = serialPortMain.PortName;
+                }
                 targetComPort = serialPortDensei.PortName;
-            }else if (flgFirmWareATSPRW)
+            }
+            else if (flgFirmWareATSPRW)
             {
-                targetComPort = serialPortATSP.PortName;
+                if (gpbControllerBoard.Enabled)
+                {
+                    targetComPort = serialPortATSP.PortName;
+                }
+                else
+                {
+                    targetComPort = serialPortMain.PortName;
+                }
             }
             if (string.IsNullOrEmpty(targetComPort))
             {
@@ -4469,7 +4477,7 @@ namespace SELDController
                         string pid = ExtractValue(deviceId, "PID_");
 
                         // Substringによるエラーを防ぐため、4文字以上あるかチェック
-                        if (pid.Length >= 4)
+                        if (pid != null && pid.Length >= 4)
                         {
                             pid = pid.Substring(0, 4);
                         }
@@ -4866,7 +4874,7 @@ namespace SELDController
                 }
                 else
                 {
-                    //serialPort1Close();未実装
+                    serialPort1Close();
                 }
                 tabControl1.Enabled = true;
                 tbLogRows.Text = "200";
