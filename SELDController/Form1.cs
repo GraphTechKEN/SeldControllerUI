@@ -66,6 +66,11 @@ namespace SELDController
         private String P_VERSION_NUM;
         private String P_VERSION;
         private int P_VERSION_SUM;
+        private int B_VERSION_MINOR, B_VERSION_MAJOR, B_VERSION_BUILD, B_VERSION_PATCH;
+        private char B_TYPE;
+        private String B_VERSION_NUM;
+        private String B_VERSION;
+        private int B_VERSION_SUM;
 
         public Form1()
         {
@@ -288,71 +293,69 @@ namespace SELDController
         private List<string> searchedFilesBinD = new List<string>();
         private List<string> searchedFilesHexP = new List<string>();
         private List<string> searchedFilesBinP = new List<string>();
-        private void FirmWareFinder(string folderName, string fileName, ComboBox cb,TextBox tb, List<string> searchFiles)
+        private void FirmWareFinder(string folderName, string fileName, ComboBox cb, TextBox tb, List<string> searchFiles)
         {
             searchFiles.Clear(); // 前回の検索結果をクリア
-            string directoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin", folderName);
-
-            // 【変更】元のファイルと .bak ファイルの両方を検索できるようにワイルドカードを指定
-            string searchPattern = fileName + "*";
-
             cb.Items.Clear();
 
-            if (Directory.Exists(directoryPath))
+            string directoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin", folderName);
+            string searchPattern = fileName + "*";
+
+            if (!Directory.Exists(directoryPath)) return;
+
+            string[] rawFiles = Directory.GetFiles(directoryPath, searchPattern, SearchOption.AllDirectories);
+            if (rawFiles.Length == 0) return;
+
+            var versionRegex = new Regex(@"\\(\d+(?:\.\d+)+)\\");
+
+            // 1. 各パスの情報を解析してソート用のオブジェクト（匿名型）を作成
+            var parsedFiles = rawFiles.Select(file =>
             {
-                // 1. まず条件に合うすべてのファイル（通常とbak両方）のパスを取得
-                string[] rawFiles = Directory.GetFiles(directoryPath, searchPattern, SearchOption.AllDirectories);
+                bool isBlink = file.IndexOf(@"\Blink\", StringComparison.OrdinalIgnoreCase) >= 0;
+                bool isBak = file.EndsWith(".bak", StringComparison.OrdinalIgnoreCase);
 
-                if (rawFiles.Length > 0)
+                Version version = null;
+                if (!isBlink)
                 {
-                    // 2. バージョン順でソート（通常ファイルを優先するため、パスの文字数や名前の辞書順で並び替えます）
-                    var sortedFiles = rawFiles.OrderBy(f => f).ToList();
-
-                    // メンバー変数に確定した順序で記憶
-                    searchFiles.AddRange(sortedFiles);
-
-                    var versionRegex = new Regex(@"\\(\d+(?:\.\d+)+)\\");
-
-                    // 3. 記憶したファイルリストの順序と「1対1」になるようにコンボボックスへ追加
-                    foreach (string file in searchFiles)
+                    Match match = versionRegex.Match(file);
+                    if (match.Success)
                     {
-                        string versionText = "";
-
-                        // 【追加】パスの中に "\Blink\" というフォルダ名が含まれているか確認
-                        if (file.IndexOf(@"\Blink\", StringComparison.OrdinalIgnoreCase) >= 0)
-                        {
-                            versionText = "Blink";
-                        }
-                        else
-                        {
-                            // 従来の数値バージョン（A.B.C.D）の解析
-                            Match match = versionRegex.Match(file);
-                            if (match.Success)
-                            {
-                                versionText = match.Groups[1].Value;
-                            }
-                            else
-                            {
-                                // 万が一どちらにもマッチしない場合
-                                versionText = $"Unknown Version";
-                            }
-                        }
-
-                        // 【変更】ファイル名の末尾に .bak が含まれていたら (backup) を追記
-                        if (file.EndsWith(".bak", StringComparison.OrdinalIgnoreCase))
-                        {
-                            versionText += " (backup)";
-                        }
-
-                        // コンボボックスへ追加
-                        cb.Items.Add(versionText);
-                    }
-
-                    if (cb.Items.Count > 0)
-                    {
-                        cb.SelectedIndex = 0;
+                        Version.TryParse(match.Groups[1].Value, out version);
                     }
                 }
+
+                // 表示用テキストの生成
+                string displayFormat = isBlink ? "Blink" : (version != null ? version.ToString() : "Unknown Version");
+                if (isBak)
+                {
+                    displayFormat += " (backup)";
+                }
+
+                return new { Path = file, IsBlink = isBlink, Version = version, IsBak = isBak, DisplayText = displayFormat };
+            });
+
+            // 2. 【変更】優先度の並び替えロジック
+            // 「Blinkを最下位」にするため、IsBlink の昇順（false -> true）でソート
+            // 数値バージョンは「最新順（降順）」にし、存在しない場合（Blinkなど）は最小値を設定
+            var sortedList = parsedFiles
+                .OrderBy(f => f.IsBlink)                                            // Blinkを最下位に (falseが先、trueが後)
+                .ThenByDescending(f => f.Version ?? new Version(0, 0, 0, 0))        // 数値バージョンを最新順（降順）に
+                .ThenBy(f => f.IsBak)                                               // 通常ファイルをバックアップより前に
+                .ToList();
+
+            // 3. 画面の更新（インデックスを完全に同期させる）
+            cb.BeginUpdate();
+            foreach (var item in sortedList)
+            {
+                searchFiles.Add(item.Path);       // 記憶用リストに追加
+                cb.Items.Add(item.DisplayText);  // コンボボックスに追加
+            }
+            cb.EndUpdate();
+
+            // 4. 初期選択を一番上（＝最新の通常バージョン）にする
+            if (cb.Items.Count > 0)
+            {
+                cb.SelectedIndex = 0;
             }
         }
 
@@ -566,6 +569,7 @@ namespace SELDController
                 timerDispBoardFinder.Start();
                 CommandWrite("RD 240");//ATS-P基板バージョン確認
                 timerATSPBoardFinder.Start();
+                CommandWrite("RD 250");//B1-Sim基板バージョン確認
                 tabControl1.Focus();
                 Disp();
 
@@ -1384,6 +1388,59 @@ namespace SELDController
                             P_VERSION_SUM = C_VERSION_MAJOR << 24 | C_VERSION_MINOR << 16 | C_VERSION_PATCH << 8 | C_VERSION_BUILD;
                         }
                         tbATSPBoardVersion.Text = P_VERSION;
+                        break;
+
+                    case 250://基板種類
+                        Name = "基板種類(B1-Sim)";
+                        //timerB1SimBoardFinder.Stop();
+                        //gpbATSP.Enabled = true;
+                        //btnOpenATSP.Visible = true;
+                        //cbPortSelectATSP.Visible = true;
+                        /*if (!flgControllerBoardFound)
+                        {
+                            pnlATSPBoard.Enabled = true;
+                            btnFirmBackupP.Enabled = true;
+                            btnEepromLoadP.Enabled = true;
+                        }
+                        else
+                        {
+                            pnlATSPBoard.Enabled = false;
+                            btnFirmBackupP.Enabled = false;
+                            btnEepromLoadP.Enabled = false;
+                        }*/
+                        val &= 0xFF;
+                        B_TYPE = (char)val;
+                        if (B_TYPE == 'B' || val == 0xFF)
+                        {
+                            CommandWrite("RD 252");
+                            board_B1Sim = true;
+                            //SwitchB1SimBoard(true);
+
+                        }
+                        break;
+
+                    case 252:
+                        Name = "Major << 8 | Minor(B1-Sim)";
+                        B_VERSION_MINOR = val >> 8;
+                        B_VERSION_MAJOR = val & 0xFF;
+                        CommandWrite("RD 254");
+                        break;
+
+                    case 254:
+                        Name = "Patch << 8 | Build(B1-Sim)";
+                        B_VERSION_BUILD = val >> 8;
+                        B_VERSION_PATCH = val & 0xFF;
+                        if (B_TYPE == 0xFF)
+                        {
+                            B_VERSION = "バージョン不明";
+                        }
+                        else
+                        {
+                            B_VERSION_NUM = B_VERSION_MAJOR.ToString() + "." + B_VERSION_MINOR.ToString() + "." + B_VERSION_PATCH.ToString() + "." + B_VERSION_BUILD.ToString();
+                            B_VERSION = B_TYPE.ToString() + " " + B_VERSION_NUM;
+                            B_VERSION_SUM = B_VERSION_MAJOR << 24 | B_VERSION_MINOR << 16 | B_VERSION_PATCH << 8 | B_VERSION_BUILD;
+                        }
+                        tbB1SimBoardVersion.Text = B_VERSION;
                         break;
 
 
@@ -3576,6 +3633,7 @@ namespace SELDController
         }
 
         private bool board_ATSP = false;
+        private bool board_B1Sim = false;
 
         private void tsmiATSPBoard_Click(object sender, EventArgs e)
         {
