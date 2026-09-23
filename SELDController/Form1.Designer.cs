@@ -39,7 +39,6 @@ namespace SELDController
             this.オプション基板ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmiDispBoard = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmiATSPBoard = new System.Windows.Forms.ToolStripMenuItem();
-            this.tbSerialRcv = new System.Windows.Forms.TextBox();
             this.btnSerialPortOpen = new System.Windows.Forms.Button();
             this.cbPortSelect = new System.Windows.Forms.ComboBox();
             this.tbLog = new System.Windows.Forms.TextBox();
@@ -557,6 +556,8 @@ namespace SELDController
             this.timerControllerBoardFinder = new System.Windows.Forms.Timer(this.components);
             this.serialPortATSP = new System.IO.Ports.SerialPort(this.components);
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.tbSerialRcv = new System.Windows.Forms.TextBox();
+            this.cbThreadSleep = new System.Windows.Forms.CheckBox();
             this.menuStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -690,15 +691,6 @@ namespace SELDController
             this.tsmiATSPBoard.Size = new System.Drawing.Size(166, 22);
             this.tsmiATSPBoard.Text = "ATS-P表示灯基板";
             this.tsmiATSPBoard.Click += new System.EventHandler(this.tsmiATSPBoard_Click);
-            // 
-            // tbSerialRcv
-            // 
-            this.tbSerialRcv.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.tbSerialRcv.Location = new System.Drawing.Point(79, 743);
-            this.tbSerialRcv.Name = "tbSerialRcv";
-            this.tbSerialRcv.Size = new System.Drawing.Size(1081, 19);
-            this.tbSerialRcv.TabIndex = 52;
             // 
             // btnSerialPortOpen
             // 
@@ -5273,6 +5265,7 @@ namespace SELDController
             this.tabPage2.Controls.Add(this.tbLogRows);
             this.tabPage2.Controls.Add(this.label17);
             this.tabPage2.Controls.Add(this.tbSpec);
+            this.tabPage2.Controls.Add(this.cbThreadSleep);
             this.tabPage2.Controls.Add(this.checkBox1);
             this.tabPage2.Controls.Add(this.tbLog);
             this.tabPage2.Controls.Add(this.messageTextBox1);
@@ -6540,6 +6533,26 @@ namespace SELDController
             this.toolTip1.IsBalloon = true;
             this.toolTip1.ShowAlways = true;
             // 
+            // tbSerialRcv
+            // 
+            this.tbSerialRcv.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tbSerialRcv.Location = new System.Drawing.Point(79, 743);
+            this.tbSerialRcv.Name = "tbSerialRcv";
+            this.tbSerialRcv.Size = new System.Drawing.Size(1081, 19);
+            this.tbSerialRcv.TabIndex = 52;
+            // 
+            // cbThreadSleep
+            // 
+            this.cbThreadSleep.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cbThreadSleep.AutoSize = true;
+            this.cbThreadSleep.Location = new System.Drawing.Point(669, 517);
+            this.cbThreadSleep.Name = "cbThreadSleep";
+            this.cbThreadSleep.Size = new System.Drawing.Size(135, 16);
+            this.cbThreadSleep.TabIndex = 63;
+            this.cbThreadSleep.Text = "送信間隔50msec挿入";
+            this.cbThreadSleep.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -6730,7 +6743,6 @@ namespace SELDController
         private System.Windows.Forms.TextBox messageTextBox1;
         private System.Windows.Forms.Label label1;
         private System.IO.Ports.SerialPort serialPortMain;
-        private System.Windows.Forms.TextBox tbSerialRcv;
         private System.Windows.Forms.Button btn010;
         private System.Windows.Forms.Button btn020;
         private System.Windows.Forms.Button btn030;
@@ -7245,6 +7257,8 @@ namespace SELDController
         private System.Windows.Forms.Label label117;
         private System.Windows.Forms.Label label118;
         private System.Windows.Forms.ToolTip toolTip1;
+        private System.Windows.Forms.TextBox tbSerialRcv;
+        private System.Windows.Forms.CheckBox cbThreadSleep;
     }
 }
 
