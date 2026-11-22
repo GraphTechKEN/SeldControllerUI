@@ -746,12 +746,12 @@ namespace SELDController.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("750")]
-        public double AtsDengenTounyuTime {
+        public double AtsDengenTounyuTimeE {
             get {
-                return ((double)(this["AtsDengenTounyuTime"]));
+                return ((double)(this["AtsDengenTounyuTimeE"]));
             }
             set {
-                this["AtsDengenTounyuTime"] = value;
+                this["AtsDengenTounyuTimeE"] = value;
             }
         }
         
@@ -997,7 +997,7 @@ namespace SELDController.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        [global::System.Configuration.DefaultSettingValueAttribute("1000")]
         public double AtsPDengenTounyuTime {
             get {
                 return ((double)(this["AtsPDengenTounyuTime"]));
@@ -1052,6 +1052,18 @@ namespace SELDController.Properties {
             }
             set {
                 this["portNameATSP"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2000")]
+        public double AtsDengenTounyuTimeW {
+            get {
+                return ((double)(this["AtsDengenTounyuTimeW"]));
+            }
+            set {
+                this["AtsDengenTounyuTimeW"] = value;
             }
         }
     }

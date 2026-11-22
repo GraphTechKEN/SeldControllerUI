@@ -182,7 +182,7 @@
     <Setting Name="AtsContactUse" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="AtsDengenTounyuTime" Type="System.Double" Scope="User">
+    <Setting Name="AtsDengenTounyuTimeE" Type="System.Double" Scope="User">
       <Value Profile="(Default)">750</Value>
     </Setting>
     <Setting Name="BPvelocityKyudouThreshold" Type="System.String" Scope="User">
@@ -246,7 +246,7 @@
       <Value Profile="(Default)">0</Value>
     </Setting>
     <Setting Name="AtsPDengenTounyuTime" Type="System.Double" Scope="User">
-      <Value Profile="(Default)">1</Value>
+      <Value Profile="(Default)">1000</Value>
     </Setting>
     <Setting Name="AtsActiveMode" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">1</Value>
@@ -259,6 +259,9 @@
     </Setting>
     <Setting Name="portNameATSP" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="AtsDengenTounyuTimeW" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">2000</Value>
     </Setting>
   </Settings>
 </SettingsFile>
