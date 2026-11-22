@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using SELDController.Properties;
 using System;
 using System.Collections.Generic;
@@ -9,11 +9,13 @@ using System.IO.Pipes;
 using System.IO.Ports;
 using System.Linq;
 using System.Management;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
 using System.Xml.Serialization;
 
 //32bit Only
@@ -66,11 +68,6 @@ namespace SELDController
         private String P_VERSION_NUM;
         private String P_VERSION;
         private int P_VERSION_SUM;
-        private int B_VERSION_MINOR, B_VERSION_MAJOR, B_VERSION_BUILD, B_VERSION_PATCH;
-        private char B_TYPE;
-        private String B_VERSION_NUM;
-        private String B_VERSION;
-        private int B_VERSION_SUM;
 
         public Form1()
         {
@@ -218,8 +215,13 @@ namespace SELDController
                 rbPWest.Checked = !Settings.Default.AtsPEast;
                 cbAtsPDengenAuto.Checked = Settings.Default.AtsPDengenAuto;
                 cbAtsContactUse.Checked = Settings.Default.AtsContactUse;
-                tbAtsSDengenTounyuTime.Text = ((double)Settings.Default.AtsDengenTounyuTime / 1000).ToString("0.0##");
-                tbAtsPDengenTounyuTime.Text = ((double)Settings.Default.AtsPDengenTounyuTime / 1000).ToString("0.0##");
+                tbAtsSDengenTounyuTimeE.Text = ((double)Settings.Default.AtsDengenTounyuTimeE / 1000).ToString("0.0##");
+                tbAtsSDengenTounyuTimeW.Text = ((double)Settings.Default.AtsDengenTounyuTimeW / 1000).ToString("0.0##");
+                tbAtsPDengenTounyuTimeW.Text = ((double)Settings.Default.AtsPDengenTounyuTime / 1000).ToString("0.0##");
+                tbAtsSDengenTounyuTimeE.Enabled = Settings.Default.AtsPEast;
+                tbAtsSDengenTounyuTimeW.Enabled = !Settings.Default.AtsPEast;
+                tbAtsPDengenTounyuTimeE.Enabled = Settings.Default.AtsPEast;
+                tbAtsPDengenTounyuTimeW.Enabled = !Settings.Default.AtsPEast;
 
                 tabControl2.SelectedIndex = Convert.ToInt16(Settings.Default.Evalve);
 
@@ -293,69 +295,71 @@ namespace SELDController
         private List<string> searchedFilesBinD = new List<string>();
         private List<string> searchedFilesHexP = new List<string>();
         private List<string> searchedFilesBinP = new List<string>();
-        private void FirmWareFinder(string folderName, string fileName, ComboBox cb, TextBox tb, List<string> searchFiles)
+        private void FirmWareFinder(string folderName, string fileName, ComboBox cb,TextBox tb, List<string> searchFiles)
         {
             searchFiles.Clear(); // 前回の検索結果をクリア
-            cb.Items.Clear();
-
             string directoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin", folderName);
+
+            // 【変更】元のファイルと .bak ファイルの両方を検索できるようにワイルドカードを指定
             string searchPattern = fileName + "*";
 
-            if (!Directory.Exists(directoryPath)) return;
+            cb.Items.Clear();
 
-            string[] rawFiles = Directory.GetFiles(directoryPath, searchPattern, SearchOption.AllDirectories);
-            if (rawFiles.Length == 0) return;
-
-            var versionRegex = new Regex(@"\\(\d+(?:\.\d+)+)\\");
-
-            // 1. 各パスの情報を解析してソート用のオブジェクト（匿名型）を作成
-            var parsedFiles = rawFiles.Select(file =>
+            if (Directory.Exists(directoryPath))
             {
-                bool isBlink = file.IndexOf(@"\Blink\", StringComparison.OrdinalIgnoreCase) >= 0;
-                bool isBak = file.EndsWith(".bak", StringComparison.OrdinalIgnoreCase);
+                // 1. まず条件に合うすべてのファイル（通常とbak両方）のパスを取得
+                string[] rawFiles = Directory.GetFiles(directoryPath, searchPattern, SearchOption.AllDirectories);
 
-                Version version = null;
-                if (!isBlink)
+                if (rawFiles.Length > 0)
                 {
-                    Match match = versionRegex.Match(file);
-                    if (match.Success)
+                    // 2. バージョン順でソート（通常ファイルを優先するため、パスの文字数や名前の辞書順で並び替えます）
+                    var sortedFiles = rawFiles.OrderBy(f => f).ToList();
+
+                    // メンバー変数に確定した順序で記憶
+                    searchFiles.AddRange(sortedFiles);
+
+                    var versionRegex = new Regex(@"\\(\d+(?:\.\d+)+)\\");
+
+                    // 3. 記憶したファイルリストの順序と「1対1」になるようにコンボボックスへ追加
+                    foreach (string file in searchFiles)
                     {
-                        Version.TryParse(match.Groups[1].Value, out version);
+                        string versionText = "";
+
+                        // 【追加】パスの中に "\Blink\" というフォルダ名が含まれているか確認
+                        if (file.IndexOf(@"\Blink\", StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            versionText = "Blink";
+                        }
+                        else
+                        {
+                            // 従来の数値バージョン（A.B.C.D）の解析
+                            Match match = versionRegex.Match(file);
+                            if (match.Success)
+                            {
+                                versionText = match.Groups[1].Value;
+                            }
+                            else
+                            {
+                                // 万が一どちらにもマッチしない場合
+                                versionText = $"Unknown Version";
+                            }
+                        }
+
+                        // 【変更】ファイル名の末尾に .bak が含まれていたら (backup) を追記
+                        if (file.EndsWith(".bak", StringComparison.OrdinalIgnoreCase))
+                        {
+                            versionText += " (backup)";
+                        }
+
+                        // コンボボックスへ追加
+                        cb.Items.Add(versionText);
+                    }
+
+                    if (cb.Items.Count > 0)
+                    {
+                        cb.SelectedIndex = 0;
                     }
                 }
-
-                // 表示用テキストの生成
-                string displayFormat = isBlink ? "Blink" : (version != null ? version.ToString() : "Unknown Version");
-                if (isBak)
-                {
-                    displayFormat += " (backup)";
-                }
-
-                return new { Path = file, IsBlink = isBlink, Version = version, IsBak = isBak, DisplayText = displayFormat };
-            });
-
-            // 2. 【変更】優先度の並び替えロジック
-            // 「Blinkを最下位」にするため、IsBlink の昇順（false -> true）でソート
-            // 数値バージョンは「最新順（降順）」にし、存在しない場合（Blinkなど）は最小値を設定
-            var sortedList = parsedFiles
-                .OrderBy(f => f.IsBlink)                                            // Blinkを最下位に (falseが先、trueが後)
-                .ThenByDescending(f => f.Version ?? new Version(0, 0, 0, 0))        // 数値バージョンを最新順（降順）に
-                .ThenBy(f => f.IsBak)                                               // 通常ファイルをバックアップより前に
-                .ToList();
-
-            // 3. 画面の更新（インデックスを完全に同期させる）
-            cb.BeginUpdate();
-            foreach (var item in sortedList)
-            {
-                searchFiles.Add(item.Path);       // 記憶用リストに追加
-                cb.Items.Add(item.DisplayText);  // コンボボックスに追加
-            }
-            cb.EndUpdate();
-
-            // 4. 初期選択を一番上（＝最新の通常バージョン）にする
-            if (cb.Items.Count > 0)
-            {
-                cb.SelectedIndex = 0;
             }
         }
 
@@ -561,7 +565,7 @@ namespace SELDController
             {                
                 send_error = false;
                 serialPort1Open();
-                //CommandWrite("MON 0");
+                CommandWrite("MON 0");
                 CommandWrite("RD 100");//制御基板状態確認
                 CommandWrite("RD 090");//制御基板バージョン確認
                 timerControllerBoardFinder.Start();
@@ -569,7 +573,6 @@ namespace SELDController
                 timerDispBoardFinder.Start();
                 CommandWrite("RD 240");//ATS-P基板バージョン確認
                 timerATSPBoardFinder.Start();
-                CommandWrite("RD 250");//B1-Sim基板バージョン確認
                 tabControl1.Focus();
                 Disp();
 
@@ -625,6 +628,7 @@ namespace SELDController
                     serialPortMain.BaudRate = 115200;
                     serialPortMain.DtrEnable = true;
                     serialPortMain.Open();
+                    rxBuffer = "";
                     cbPortSelect.Enabled = false;
                     tabControl1.Enabled = true;
                     toolStripStatusLabel1.Text = "SerialPort1:Open " + serialPortMain.PortName;
@@ -757,120 +761,127 @@ namespace SELDController
             CommandWrite(messageTextBox1.Text);
         }
 
-        // クラスのメンバ変数として定義（受信バッファ）
-        private StringBuilder rxBuffer = new StringBuilder();
-
+        /****************************************************************************/
+        /*!
+         * serialPort1でデータを受信すると実行されます。
+         * スレッドが異なるので、Invokeを使う。
+         * BeginInvokeでやったほうがいいらしい
+         * http://kana-soft.com/tech/sample_0007_4.htm
+         */
         private void serialPort1_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             timer1.Stop();
-
-            // 受信したデータをすべて取得
-            string rawData = serialPortMain.ReadExisting();
-
-            // UIスレッドで安全に解析・処理を行う
-            BeginInvoke(new Action(() => ProcessReceivedData(rawData)));
-        }
-        // ⚠️ このメソッドは BeginInvoke により【UIスレッド】で実行されます
-        private void ProcessReceivedData(string rawData)
-        {
-            if (string.IsNullOrEmpty(rawData)) return;
-
-            // バッファに新着データを追加
-            rxBuffer.Append(rawData);
-
-            string bufferStr = rxBuffer.ToString();
-            int newlineIndex;
-
-            // バッファ内に改行コード（\n または \r）がある間、ループで1行ずつ切り出す
-            while ((newlineIndex = bufferStr.IndexOfAny(new char[] { '\r', '\n' })) >= 0)
+            // DataReceivedは別スレッドで並行して呼ばれることがあるため、
+            // 読み出しとUIスレッドへの投入を一続きにして、受信順が入れ替わらないようにする
+            lock (rxLock)
             {
-                // 1行分のデータを抽出（改行の手前まで）
-                string line = bufferStr.Substring(0, newlineIndex).Trim();
-
-                // 処理した分のデータをバッファから削除
-                // \r\n のように連続している場合のケアを含めてインデックスを進める
-                int skipLength = 1;
-                if (newlineIndex + 1 < bufferStr.Length &&
-                    ((bufferStr[newlineIndex] == '\r' && bufferStr[newlineIndex + 1] == '\n') ||
-                     (bufferStr[newlineIndex] == '\n' && bufferStr[newlineIndex + 1] == '\r')))
-                {
-                    skipLength = 2;
-                }
-
-                bufferStr = bufferStr.Substring(newlineIndex + skipLength);
-                rxBuffer.Clear();
-                rxBuffer.Append(bufferStr);
-
-                // 空行でなければデータ処理を実行
-                if (!string.IsNullOrEmpty(line))
-                {
-                    ExecuteLineCommand(line);
-                }
-            }
-
-            // --- 元のコードの末尾にあった部分的な文字列判定処理 ---
-            // ※細切れデータ対策のため、生データ(rawData)ではなく蓄積データで見る必要がありますが、
-            // 暫定的に元のロジックを維持（必要に応じて上記ループ内に移動してください）
-            if (cbModeN.Checked && rawData.Length < 7)
-            {
-                lblBrkNotch.Text = rawData;
-            }
-            int positionTimeStart = rawData.IndexOf("Time:");
-            int positionTimeEnd = rawData.IndexOf("sec");
-            if (positionTimeStart > 0 && positionTimeEnd > positionTimeStart)
-            {
-                // txtBoxLevel.Text = rawData.Substring(positionTimeStart + 5, positionTimeEnd - positionTimeStart - 5);
+                // 受信したデータ
+                string data = serialPortMain.ReadExisting();
+                // 異なるスレッドのテキストボックスに書き込む
+                BeginInvoke(new Delegate_write(write), new Object[] { data });
             }
         }
 
-        // 1行（改行ごと）のパースとUI更新、ビジネスロジック
-        private void ExecuteLineCommand(string data_disp)
+        /****************************************************************************/
+        /*!
+         * logTextBoxに受信内容を書き込みます。
+         */
+
+        //受信データの行バッファ(行の途中で終わった分を次回の受信まで保持する)
+        private string rxBuffer = "";
+        private readonly object rxLock = new object();
+        private static readonly char[] rxLineSeparators = { '\r', '\n' };
+
+        //受信した1行分を処理する
+        private void ProcessReceivedLine(string data_disp)
         {
-            // すでにUIスレッド上なので、Invokeなしで直接テキストボックスを更新可能
-            tbSerialRcv.Text = data_disp;
-            // tbSerialRcv.Update(); // ※フリーズの原因になるため通常は不要。描画が遅れる場合のみ残す。
-
-            if (checkBox1.Checked)
+            // --- UIの更新（安全にInvokeで行う） ---
+            tbSerialRcv.Invoke(new Action(() =>
             {
-                AppendLog("Read : " + data_disp + "\r\n");
-            }
+                tbSerialRcv.Text = data_disp;
+                tbSerialRcv.Update(); // 確実にその場で描画を更新させる
+            }));
 
-            // データの詳細解析
-            if (data_disp.Length > 5 && !data_disp.StartsWith("OK POT") && data_disp.StartsWith("Pot"))
+            if (data_disp.Length > 5)
             {
-                if (flgAdjN)
+                if (!data_disp.StartsWith("OK POT") && data_disp.StartsWith("Pot"))
                 {
-                    flgAdjN = false;
-                    if (int.TryParse(data_disp.Substring(7, 4), out int iAdjN))
+                    if (flgAdjN)
                     {
-                        if (MessageBox.Show($"このポテンショ値({iAdjN})を角度0°に設定します", "N位置設定", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.OK)
+                        flgAdjN = false;
+                        int.TryParse(data_disp.Substring(7, 4), out int iAdjN);
+                        if (MessageBox.Show("このポテンショ値(" + iAdjN.ToString() + ")を角度0°に設定します", "N位置設定", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.OK)
                         {
                             tbAdjN.Text = iAdjN.ToString();
                             AdjN();
                             Thread.Sleep(50);
                         }
+                        CommandWrite("MD POT 0", true);
                     }
-                    CommandWrite("MD POT 0", true);
-                }
-
-                if (flgAdjEB)
-                {
-                    flgAdjEB = false;
-                    if (int.TryParse(data_disp.Substring(7, 4), out int iAdjEB))
+                    if (flgAdjEB)
                     {
-                        if (MessageBox.Show($"このポテンショ値({iAdjEB})を角度165°に設定します", "EB位置設定", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.OK)
+                        flgAdjEB = false;
+                        int.TryParse(data_disp.Substring(7, 4), out int iAdjEB);
+                        if (MessageBox.Show("このポテンショ値(" + iAdjEB.ToString() + ")を角度165°に設定します", "EB位置設定", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.OK)
                         {
                             tbAdjEB.Text = iAdjEB.ToString();
                             AdjEB();
                             Thread.Sleep(50);
                         }
+                        CommandWrite("MD POT 0", true);
                     }
-                    CommandWrite("MD POT 0", true);
                 }
             }
 
-            // 第一引数(全体)と第二引数(分割後)の整合性を保つため、この行の内容を両方に渡す
-            read_Settings(data_disp);
+            //ログ出力チェックボックスがチェックされている場合
+            if (checkBox1.Checked)
+            {
+                AppendLog("Read : " + data_disp + "\r\n");
+            }
+
+            //※read_Settingsは1行単位で解析する(複数行をまとめて渡すと値が0になり、先頭行以外は無視されるため)
+            read_Settings(data_disp, data_disp);
+        }
+
+        private void write(string data)
+        {
+            if (data != null)
+            {
+                //受信文字列を行バッファへ追加し、CR/LF/CRLFのいずれでも区切って1行ずつ処理する。
+                //区切りのない残りは、次回の受信で続きが届くまで保持する。
+                rxBuffer += data;
+                int sepIndex;
+                while ((sepIndex = rxBuffer.IndexOfAny(rxLineSeparators)) >= 0)
+                {
+                    string line = rxBuffer.Substring(0, sepIndex).Trim();
+                    //MessageBox等で再入しても整合するよう、処理の前にバッファを進めておく
+                    rxBuffer = rxBuffer.Substring(sepIndex + 1);
+                    if (line.Length > 0)
+                    {
+                        ProcessReceivedLine(line);
+                    }
+                }
+                //区切りが来ないまま溜まり続けた場合の保険
+                if (rxBuffer.Length > 1024)
+                {
+                    rxBuffer = "";
+                }
+
+                if (cbModeN.Checked && data.Length < 7)
+                {
+                    lblBrkNotch.Text = data;
+                }
+                /*StringReader rs = new System.IO.StringReader(data);
+                tbSerialRcv.Text = rs.ReadLine();*/
+                int positionTimeStart = data.IndexOf("Time:");
+                int positionTimeEnd = data.IndexOf("sec");
+                int positionTimeLength = positionTimeEnd - positionTimeStart;
+                if (positionTimeStart > 0)
+                {
+                    //txtBoxLevel.Text = data.Substring(positionTimeStart + 5, positionTimeLength - 5);
+                }
+
+            }
         }
 
         private int Control_Input(string inputText, Control control)
@@ -884,21 +895,19 @@ namespace SELDController
 
         }
 
-        private void read_Settings(string data_)
+        private void read_Settings(string data_all_, string data_)
         {
+
+
             if (data_.StartsWith("OK "))
             {
-                string Name = "";
-                //デバイスアドレスを取得
                 int.TryParse(data_.Substring(3, 3), out int addr);
-                //デバイス値を取得
-                int.TryParse(data_.Substring(7), out int val);
                 if ((addr >= 0 && addr <= 10) || (addr >= 54 && addr <= 66))
                 {
                     //ブレーキ段数読出し, ブレーキ角度読出し,ブレーキ非常位置読出し,ブレーキ幅範囲,常用最大角度,チャタリングフィルタ
-                    string[] strBrks2 = { "OK 000", "OK 002", "OK 004", "OK 006", "OK 008", "OK 010", "OK 058", "OK 056", "OK 054", "OK 060", "OK 062", "OK 064", "OK 066" };
-                    TextBox[] txtBoxes2 = { tbAdjN, tbAdjEB, tbBrkNum, tbSapAngl, tbEBAngl, tbBrkFullAngl, tbBrkSapMinAngl, tbBrkSapMaxAngl, tbChatFilter, tbKeep, tbKeepFull, tbBpSpanDown, tbBpSpanUp };
-                    string[] paramNames = { "N位置", "EB位置", "ブレーキ段数", "直通帯幅[°]", "非常位置[°]", "ブレーキ全体角度[°]", "直通帯最小角度[°]", "常用最大角度[°]", "チャタリングフィルタ", "自動帯開始角度[°]", "自動帯全開角度[°]", "BP減圧間隔", "BP増圧間隔" };
+                    string[] strBrks2 = { "OK 000","OK 002","OK 004", "OK 006", "OK 008", "OK 010", "OK 058", "OK 056", "OK 054", "OK 060", "OK 062", "OK 064", "OK 066" };
+                    TextBox[] txtBoxes2 = { tbAdjN, tbAdjEB,tbBrkNum, tbSapAngl, tbEBAngl, tbBrkFullAngl, tbBrkSapMinAngl, tbBrkSapMaxAngl, tbChatFilter, tbKeep, tbKeepFull, tbBpSpanDown, tbBpSpanUp };
+                    string[] paramNames = { "N位置","EB位置","ブレーキ段数", "直通帯幅[°]", "非常位置[°]", "ブレーキ全体角度[°]", "直通帯最小角度[°]", "常用最大角度[°]", "チャタリングフィルタ", "自動帯開始角度[°]", "自動帯全開角度[°]", "BP減圧間隔", "BP増圧間隔" };
 
                     for (int i = 0; i < strBrks2.Length; i++)
                     {
@@ -915,535 +924,519 @@ namespace SELDController
                     }
                 }
 
-                // 速度設定値
-                else if (addr >= 12 && addr <= 42)
+                //速度設定値
+                else  if (addr >= 12 && addr <= 42)
                 {
                     int.TryParse(data_.Substring(7), out int d);
-
                     int index = (addr - 12) / 2;
-
-                    if (index >= 0 && index < tbSpdTextBox.Length)
-                    {
-                        Control_Input(data_, tbSpdTextBox[index]);
-                    }
-
-                    // パラメータ番号で検索してDataGridView用のデータを更新
-                    string paramNum = addr.ToString("D3");
-                    string paramName = ((index + 1) * 10).ToString() + "km/h";
-
-                    UpdateParamList(paramNum, paramName, d.ToString());
+                    Control_Input(data_, tbSpdTextBox[index]);
+                    // paramList にも同じ値を反映させる(番号で検索し、無ければ追加)
+                    UpdateParamList(addr.ToString("D3"), ((index + 1) * 10).ToString() + "km/h", d.ToString());
                 }
+            }
 
-                else
+            if (data_all_.IndexOf("OK ") == 0)
+            {
+                string Name = "";
+                //デバイスアドレスを取得
+                int.TryParse(data_all_.Substring(3,3), out int addr);
+                //デバイス値を取得
+                int.TryParse(data_all_.Substring(7), out int val);
+
+                switch (addr)
                 {
-                    switch (addr)
-                    {
-                        case 44://最高速度
-                            Name = "最高速度[km/h]";
-                            Control_Input(data_, tbLimit);
-                            Limit_Setting(true);
-                            break;
+                    case 44://最高速度
+                        Name = "最高速度[km/h]";
+                        Control_Input(data_all_, tbLimit);
+                        Limit_Setting(true);
+                        break;
 
 
-                        case 46://回生モード
-                            Name = "回生モード";
-                            cbKaisei.Checked = (val == 1);
-                            break;
+                    case 46://回生モード
+                        Name = "回生モード";
+                        cbKaisei.Checked = (val == 1);
+                        break;
 
-                        case 48://計器モード
-                            Name = "計器モード";
-                            rbCurrent.Checked = (val == 0);
-                            rbVolt.Checked = (val == 1);
-                            break;
+                    case 48://計器モード
+                        Name = "計器モード";
+                        rbCurrent.Checked = (val == 0);
+                        rbVolt.Checked = (val == 1);
+                        break;
 
-                        case 52://列車抵抗
-                            Name = "列車抵抗[Ω]";
-                            Control_Input(data_, tbOhm);
-                            break;
+                    case 50://電流上限(制御基板側でWR不可のため読出しのみ)
+                        Name = "電流上限[A]";
+                        break;
+
+                    case 52://列車抵抗
+                        Name = "列車抵抗[Ω]";
+                        Control_Input(data_all_, tbOhm);
+                        break;
 
 
-                        case 68://自動帯使用可否
-                            Name = "自動帯設定";
-                            cbAutoairUse.Checked = ((val & 1) == 1);//自動帯使用
-                                                                    // = ((d >> 1 & 1) == 1);//実際のエアーを使用
-                            cbAutoAirEX.Checked = ((val >> 2 & 1) == 1);//BveEXを使用
-                            break;
+                    case 68://自動帯使用可否
+                        Name = "自動帯設定";
+                        cbAutoairUse.Checked = ((val & 1) == 1);//自動帯使用
+                        // = ((d >> 1 & 1) == 1);//実際のエアーを使用
+                        cbAutoAirEX.Checked = ((val >> 2 & 1) == 1);//BveEXを使用
+                        break;
 
-                        case 70: //マスコン段数(コントローラー)
-                            Name = "マスコン段数(コントローラー)";
-                            Control_Input(data_, tbMcNumMax);
-                            tbMcNumMaxTop.Text = tbMcNumMax.Text;
-                            break;
+                    case 70: //マスコン段数(コントローラー)
+                        Name = "マスコン段数(コントローラー)";
+                        Control_Input(data_all_, tbMcNumMax);
+                        tbMcNumMaxTop.Text = tbMcNumMax.Text;
+                        break;
 
-                        case 72://マスコン段数(BVE車両側)
-                            Name = "マスコン段数(BVE車両側)";
-                            Control_Input(data_, tbMcNum);
-                            tbMcNumTop.Text = tbMcNum.Text;
-                            break;
+                    case 72://マスコン段数(BVE車両側)
+                        Name = "マスコン段数(BVE車両側)";
+                        Control_Input(data_all_, tbMcNum);
+                        tbMcNumTop.Text = tbMcNum.Text;
+                        break;
 
-                        case 74://警報持続反転
-                            Name = "入力設定1(旧警報持続反転)";
-                            cbAtsCont.Checked = ((val & 1) == 1);
-                            //cbAtsConf.Checked = ((d >> 1 & 1) == 1);
-                            cbAtsRec.Checked = ((val >> 2 & 1) == 1);
-                            cbEB.Checked = ((val >> 3 & 1) == 1);
-                            cbHorn1.Checked = ((val >> 4 & 1) == 1);
-                            cbHorn2.Checked = ((val >> 5 & 1) == 1);
-                            cbDecEB.Checked = ((val >> 6 & 1) == 1);
-                            cbMeterCheck.Checked = ((val >> 7 & 1) == 0);
-                            break;
+                    case 74://警報持続反転
+                        Name = "入力設定1(旧警報持続反転)";
+                        cbAtsCont.Checked = ((val & 1) == 1);
+                        //cbAtsConf.Checked = ((d >> 1 & 1) == 1);
+                        cbAtsRec.Checked = ((val >> 2 & 1) == 1);
+                        cbEB.Checked = ((val >> 3 & 1) == 1);
+                        cbHorn1.Checked = ((val >> 4 & 1) == 1);
+                        cbHorn2.Checked = ((val >> 5 & 1) == 1);
+                        cbDecEB.Checked = ((val >> 6 & 1) == 1);
+                        cbMeterCheck.Checked = ((val >> 7 & 1) == 0);
+                        break;
 
-                        case 76://ATS確認ボタン反転
-                            Name = "入力設定2(旧ATS確認ボタン反転)";
-                            cbAtsConf.Checked = ((val & 1) == 1);
-                            cbxPanto.SelectedIndex = (val >> 1 & 1);
-                            cbxB1Dengen.SelectedIndex = (val >> 3 & 1);
-                            cbxATSDengen.SelectedIndex = (val >> 4 & 1);
-                            cbTransferEBState.Checked = ((val >> 5 & 1) == 1);
-                            cbBVEForceMode.Checked = ((val >> 6 & 1) == 1);
-                            break;
+                    case 76://ATS確認ボタン反転
+                        Name = "入力設定2(旧ATS確認ボタン反転)";
+                        cbAtsConf.Checked = ((val & 1) == 1);
+                        cbxPanto.SelectedIndex = (val >> 1 & 1);
+                        cbxB1Dengen.SelectedIndex = (val >> 3 & 1);
+                        cbxATSDengen.SelectedIndex = (val >> 4 & 1);
+                        cbTransferEBState.Checked = ((val >> 5 & 1) == 1);
+                        cbBVEForceMode.Checked = ((val >> 6 & 1) == 1);
+                        break;
 
-                        case 78://自動ノッチ合わせ
-                            Name = "自動ノッチ合わせ";
-                            cbxAutoNotch.SelectedIndex = val;////ここ確認！
-                            cbBVEForceMode.Checked = ((val >> 6 & 1) == 1);
-                            break;
+                    case 78://自動ノッチ合わせ
+                        Name = "自動ノッチ合わせ";
+                        cbxAutoNotch.SelectedIndex = val;////ここ確認！
+                        cbBVEForceMode.Checked = ((val >> 6 & 1) == 1);
+                        break;
 
-                        case 80://実際のエアー圧で自動帯再現
-                            Name = "実際のエアー圧で自動帯再現";
-                            cbRealAutoAir.Checked = (val == 1);
-                            break;
+                    case 80://実際のエアー圧で自動帯再現
+                        Name = "実際のエアー圧で自動帯再現";
+                        cbRealAutoAir.Checked = (val == 1);
+                        break;
 
-                        case 82://ATS接点を使用して他基板へ転送する
-                            Name = "ATS接点を使用して他基板へ転送";
-                            cbAtsContactUse.Checked = (val == 1);
-                            break;
+                    case 82://ATS接点を使用して他基板へ転送する
+                        Name = "ATS接点を使用して他基板へ転送";
+                        cbAtsContactUse.Checked = (val == 1);
+                        break;
 
-                        case 84://ATS電源角度
-                            Name = "ATS電源角度[°]";
-                            Control_Input(data_, tbATSDengenAngle);
-                            break;
+                    case 84://ATS電源角度
+                        Name = "ATS電源角度[°]";
+                        Control_Input(data_all_, tbATSDengenAngle);
+                        break;
 
-                        case 90://基板種類                        
-                            Name = "基板種類(制御基板)";
-                            timerControllerBoardFinder.Stop();
-                            flgControllerBoardFound = true;
-                            gpbControllerBoard.Enabled = true;
-                            //gpbDispBoard.Enabled = false;
+                    case 90://基板種類                        
+                        Name = "基板種類(制御基板)";
+                        timerControllerBoardFinder.Stop();
+                        flgControllerBoardFound = true;
+                        gpbControllerBoard.Enabled = true;
+                        //gpbDispBoard.Enabled = false;
+                        pnlDispBoard.Enabled = false;
+                        btnFirmBackupD.Enabled = false;
+                        btnEepromLoadD.Enabled = false;
+                        gpbATSP.Enabled = false;
+                        val &= 0xFF;
+                        C_TYPE = (char)val;
+                        //UpdateParamList(addr.ToString("D3"), "基板種類", C_TYPE.ToString());
+                        if (C_TYPE == 'C' || val == 0xFF)
+                        {
+                            CommandWrite("RD 092");
+                        }
+                        else
+                        {
+                            MessageBox.Show("接続先が制御基板ではないかもしれません。接続先またはバージョンを確認してください。");
+                        }
+                        break;
+
+                    case 92:
+                        Name = "Major << 8 | Minor(制御基板)";
+                        String s = data_all_.Substring(7).Trim();
+                        int.TryParse(s, out int d);
+                        C_VERSION_MINOR = val >> 8;
+                        C_VERSION_MAJOR = val & 0xFF;
+                        CommandWrite("RD 094");
+                        //Control_Input(data_all_, tbATSDengen);
+                        //UpdateParamList(addr.ToString("D3"), "Major,Minor", C_VERSION_MAJOR.ToString() + "." + C_VERSION_MINOR.ToString() + ".");
+                        break;
+
+                    case 94:
+                        Name = "Patch << 8 | Build(制御基板)";
+                        C_VERSION_BUILD = val >> 8;
+                        C_VERSION_PATCH = val & 0xFF;
+                        if (C_TYPE == 0xFF)
+                        {
+                            C_VERSION = "未接続";
+                        }
+                        else
+                        {
+                            C_VERSION_NUM = C_VERSION_MAJOR.ToString() + "." + C_VERSION_MINOR.ToString() + "." + C_VERSION_PATCH.ToString() + "." + C_VERSION_BUILD.ToString();
+                            C_VERSION = C_TYPE.ToString() + " " + C_VERSION_NUM;
+                            C_VERSION_SUM = C_VERSION_MAJOR << 24 | C_VERSION_MINOR << 16 | C_VERSION_PATCH << 8 | C_VERSION_BUILD;
+                        }
+                        tbControlBoardVersion.Text = C_VERSION;
+                        break;
+
+                    case 100://制御基板チェック
+                        Name = "制御基板チェック";
+                        flgSeldControllerFound = true;
+                        flgFirstReadCheck = true;
+                        flgNoFirm = false;
+                        break;
+
+                    case 102:
+                        Name = "FV Min";
+                        Control_Input(data_all_, tbFVMin);
+                        break;
+
+                    case 104:
+                        Name = "FV Max";
+                        Control_Input(data_all_, tbFVMax);
+                        break;
+
+                    case 106:
+                        Name = "BP Min";
+                        Control_Input(data_all_, tbBPMin);
+                        break;
+
+                    case 108:
+                        Name = "BP Max";
+                        Control_Input(data_all_, tbBPMax);
+                        break;
+
+                    case 110:
+                        Name = "BC Min";
+                        Control_Input(data_all_, tbBCMin);
+                        break;
+
+                    case 112://平均化率
+                        Name = "平均化率";
+                        Control_Input(data_all_, tbAveRatio);
+                        break;
+
+                    case 114:
+                        Name = "モニタ間隔[msec]";
+                        Control_Input(data_all_, tbMonInterval);
+                        break;
+
+                    case 116:
+                        Name = "E電磁弁開放時間[msec]";
+                        if (val != 65535)
+                        {
+                            tbEBInterval.Text = (val * 0.001).ToString("0.0##");
+                        }
+                        break;
+
+                    case 118:
+                        Name = "EBしきい値[kPa]";
+                        Control_Input(data_all_, tbEBThreshold);
+                        break;
+                    
+                    case 120://ATS電源モード(表示灯基板) / ME48非常抜取:1
+                        Name = "ATS電源モード/ME48非常抜取:1";
+                        if (val != 65535)
+                        {
+                            cbAtsDengenMode.Checked = (val != 0);
+                        }
+                        break;
+
+                    case 122://ATS警報器鳴動 0:鳴動なし 1以上:鳴動許可
+                        Name = "ATS警報器鳴動";
+                        if (val != 65535)
+                        {
+                            cbAtsActiveMode.Checked = (val != 0);
+                        }
+                        break;
+
+                    case 124:
+                        Name = "FVPress Min [kPa]";
+                        Control_Input(data_all_, tbFVPressMin);
+                        break;
+
+                    case 126:
+                        Name = "FVPress Max [kPa]";
+                        Control_Input(data_all_, tbFVPressMax);
+                        break;
+                    case 128:
+                        Name = "BPPress Min [kPa]";
+                        Control_Input(data_all_, tbBPPressMin);
+                        break;
+                    case 130:
+                        Name = "BPPress Max [kPa]";
+                        Control_Input(data_all_, tbBPPressMax);
+                        break;
+                    
+                    case 132://BC最大圧力(急動部動作時)
+                        Name = "BC最大圧力(急動部動作時)[kPa]";
+                        Control_Input(data_all_, tbBCMax);
+                        break;
+                    
+                    case 134://BC最大圧力(常用時)
+                        Name = "BC最大圧力(常用時)[kPa]";
+                        Control_Input(data_all_, tbBCMaxNorm);
+                        break;
+                    
+                    case 136://BC倍率(急動部動作時)
+                        Name = "BC倍率(急動部動作時)[kPa]";
+                        if (val != 65535)
+                        {
+                            tbBCMulti.Text = (val * 0.1).ToString("0.0");
+                        }
+                        break;
+                    
+                    case 138://BC倍率(常用時)
+                        Name = "BC倍率(常用時)";
+                        if (val != 65535)
+                        {
+                            tbBCMultiNorm.Text = (val * 0.1).ToString("0.0");
+                        }
+                        break;
+                    
+                    case 140://ATS-S電源投入時間
+                        Name = "ATS-S電源投入時間[msec]";
+                        if (val != 65535)
+                        {
+                            if (rbPEast.Checked)
+                            {
+                                tbAtsSDengenTounyuTimeE.Text = (val * 0.001).ToString("0.0##");
+                            }
+                            else
+                            {
+                                tbAtsSDengenTounyuTimeW.Text = (val * 0.001).ToString("0.0##");
+                            }
+                        }
+                        break;
+
+                    
+                    case 142://急動部動作BP減速度しきい値
+                        Name = "急動部動作BP減速度しきい値";
+                        if (val != 65535)
+                        {
+                            tbBPvelocityKyudouThreshold.Text = val.ToString();
+                        }
+                        break;
+
+                    
+                    case 144:  //制御弁モード A制御弁(0) E制御弁(1)
+                        Name = "制御弁モード A制御弁(0) E制御弁(1)";
+                        if (val == 0)
+                        {
+                            tabControl2.TabIndex = 0;
+                        }
+                        else
+                        {
+                            tabControl2.TabIndex = 1;
+                        }
+                        break;
+
+
+                    case 146://BC最大圧力(E制御弁)
+                        Name = "BC最大圧力(E制御弁)[kPa]";
+                        Control_Input(data_all_, tbBCMaxE);
+                        break;
+                    
+                    case 148://BC倍率(E制御弁)
+                        Name = "BC倍率(E制御弁)";
+                        if (val != 65535)
+                        {
+                            tbBCMultiE.Text = (val * 0.1).ToString("0.0");
+                        }
+                        break;
+
+                    
+                    case 150://平均化率(E制御弁)
+                        Name = "平均化率(E制御弁)";
+                        Control_Input(data_all_, tbAveRatioE);
+                        break;
+                   
+                    case 152: //E電磁弁遅延時間
+                        Name = "E電磁弁遅延時間[msec]";
+                        if (val != 65535)
+                        {
+                            tbEBOndelay.Text = (val * 0.001).ToString("0.0##");
+                        }
+                        break;
+
+                    
+                    case 154://電空レギュレータ電源OFF時間
+                        Name = "電空レギュレータ電源OFF時間[msec]";
+                        if (val != 65535)
+                        {
+                            tbRegOffDelay.Text = (val * 0.001).ToString("0.0##");
+                        }
+                        break;
+
+                    
+                    case 156://FVを490kPaに固定　(0:false 1:true)
+                        Name = "FVを490kPaに固定";
+                        if (val != 65535)
+                        {
+                            cbFVhold.Checked = (val == 1);
+                        }
+                        break;
+
+                    case 180://ユニット表示タイプ 0:115 1:201 2:Oer1000
+                        Name = "ユニット表示タイプ";
+                        break;
+
+                    case 182://ユニット表示灯数
+                        Name = "ユニット表示灯数";
+                        if (val != 65535)
+                        {
+                            tbUnitNum.Text = val.ToString();
+                        }
+                        break;
+
+                    case 190://基板種類
+                        Name = "基板種類(電制表示灯基板)";
+                        timerDispBoardFinder.Stop();
+                        gpbDispBoard.Enabled = true;
+                        btnOpenDensei.Visible = true;
+                        cbPortSelectDensei.Visible = true;
+                        if (!flgControllerBoardFound)
+                        {
+                            pnlDispBoard.Enabled = true;
+                            btnFirmBackupD.Enabled = true;
+                            btnEepromLoadD.Enabled = true;
+                        }
+                        else
+                        {
                             pnlDispBoard.Enabled = false;
                             btnFirmBackupD.Enabled = false;
                             btnEepromLoadD.Enabled = false;
-                            gpbATSP.Enabled = false;
-                            val &= 0xFF;
-                            C_TYPE = (char)val;
-                            //UpdateParamList(addr.ToString("D3"), "基板種類", C_TYPE.ToString());
-                            if (C_TYPE == 'C' || val == 0xFF)
-                            {
-                                CommandWrite("RD 092");
-                            }
-                            else
-                            {
-                                MessageBox.Show("接続先が制御基板ではないかもしれません。接続先またはバージョンを確認してください。");
-                            }
-                            break;
+                        }
+                        val &= 0xFF;
+                        D_TYPE = (char)val;
+                        if (D_TYPE == 'D' || val == 0xFF)
+                        {
+                            CommandWrite("RD 192");
+                            board_Disp = true;
+                            SwitchDispBoard(true);
+                        }
+                        break;
 
-                        case 92:
-                            Name = "Major << 8 | Minor(制御基板)";
-                            String s = data_.Substring(7).Trim();
-                            int.TryParse(s, out int d);
-                            C_VERSION_MINOR = val >> 8;
-                            C_VERSION_MAJOR = val & 0xFF;
-                            CommandWrite("RD 094");
-                            //Control_Input(data_all_, tbATSDengen);
-                            //UpdateParamList(addr.ToString("D3"), "Major,Minor", C_VERSION_MAJOR.ToString() + "." + C_VERSION_MINOR.ToString() + ".");
-                            break;
+                    case 192:
+                        Name = "Major << 8 | Minor(電制表示灯基板)";
+                        D_VERSION_MINOR = val >> 8;
+                        D_VERSION_MAJOR = val & 0xFF;
+                        CommandWrite("RD 194");
+                        break;
 
-                        case 94:
-                            Name = "Patch << 8 | Build(制御基板)";
-                            C_VERSION_BUILD = val >> 8;
-                            C_VERSION_PATCH = val & 0xFF;
-                            if (C_TYPE == 0xFF)
-                            {
-                                C_VERSION = "未接続";
-                            }
-                            else
-                            {
-                                C_VERSION_NUM = C_VERSION_MAJOR.ToString() + "." + C_VERSION_MINOR.ToString() + "." + C_VERSION_PATCH.ToString() + "." + C_VERSION_BUILD.ToString();
-                                C_VERSION = C_TYPE.ToString() + " " + C_VERSION_NUM;
-                                C_VERSION_SUM = C_VERSION_MAJOR << 24 | C_VERSION_MINOR << 16 | C_VERSION_PATCH << 8 | C_VERSION_BUILD;
-                            }
-                            tbControlBoardVersion.Text = C_VERSION;
-                            break;
+                    case 194:
+                        Name = "Patch << 8 | Build(電制表示灯基板)";
+                        D_VERSION_BUILD = val >> 8;
+                        D_VERSION_PATCH = val & 0xFF;
+                        if (D_TYPE == 0xFF)
+                        {
+                            D_VERSION = "バージョン不明";
+                        }
+                        else
+                        {
+                            D_VERSION_NUM = D_VERSION_MAJOR.ToString() + "." + D_VERSION_MINOR.ToString() + "." + D_VERSION_PATCH.ToString() + "." + D_VERSION_BUILD.ToString();
+                            D_VERSION = D_TYPE.ToString() + " " + D_VERSION_NUM;
+                            D_VERSION_SUM = D_VERSION_MAJOR << 24 | D_VERSION_MINOR << 16 | D_VERSION_PATCH << 8 | D_VERSION_BUILD;
+                        }
+                        tbDispBoardVersion.Text = D_VERSION;
+                        break;
 
-                        case 100://制御基板チェック
-                            Name = "制御基板チェック";
-                            flgSeldControllerFound = true;
-                            flgFirstReadCheck = true;
-                            flgNoFirm = false;
-                            break;
+                    case 200://ATS-P 自動電源表示 自動(1)/強制(0)
+                        Name = "ATS-P自動電源表示 自動(1)/ 強制(0)";
+                        cbAtsPDengenAuto.Checked = (val != 0);
+                        break;
+                    
+                    case 202://ATS-P East(1)/West(0)
+                        Name = "ATS-P East(1)/West(0)";
+                        if (val != 65535)
+                        {
+                            rbPEast.Checked = (val != 0);
+                            rbPWest.Checked = (val == 0);
+                        }
+                        break;
 
-                        case 102:
-                            Name = "FV Min";
-                            Control_Input(data_, tbFVMin);
-                            break;
+                    case 204:   //ATS未投入防止 1bit:(1)警報器(0)警報装置 2bit:(1)2ノッチ(0)3ノッチ                     {
+                        Name = "ATS未投入防止";
+                        if (val != 65535)
+                        {
+                            rbATS.Checked = (val == 0);
+                            rbATS2.Checked = (val == 3);
+                            rbATS3.Checked = (val == 1);
+                        }
+                        break;
 
-                        case 104:
-                            Name = "FV Max";
-                            Control_Input(data_, tbFVMax);
-                            break;
+                    case 206://BZ21強制停止タイマー
+                        Name = "BZ21強制停止タイマー[msec]";
+                        break;
 
-                        case 106:
-                            Name = "BP Min";
-                            Control_Input(data_, tbBPMin);
-                            break;
+                    case 208:  //ATS-P(West)表示灯点灯遅延タイマ
+                        Name = "ATS-P(West)表示灯点灯遅延タイマ";
+                        if (val != 65535)
+                        {
+                            tbAtsPDengenTounyuTimeW.Text = (val * 0.001).ToString("0.0##");
+                        }
+                        break;
 
-                        case 108:
-                            Name = "BP Max";
-                            Control_Input(data_, tbBPMax);
-                            break;
+                    case 240://基板種類
+                        Name = "基板種類(ATS-P)";
+                        timerATSPBoardFinder.Stop();
+                        gpbATSP.Enabled = true;
+                        btnOpenATSP.Visible = true;
+                        cbPortSelectATSP.Visible = true;
+                        if (!flgControllerBoardFound)
+                        {
+                            pnlATSPBoard.Enabled = true;
+                            btnFirmBackupP.Enabled = true;
+                            btnEepromLoadP.Enabled = true;
+                        }
+                        else
+                        {
+                            pnlATSPBoard.Enabled = false;
+                            btnFirmBackupP.Enabled = false;
+                            btnEepromLoadP.Enabled = false;
+                        }
+                        val &= 0xFF;
+                        P_TYPE = (char)val;
+                        if (P_TYPE == 'P' || val == 0xFF)
+                        {
+                            CommandWrite("RD 242");
+                            board_ATSP = true;
+                            SwitchATSPBoard(true);
 
-                        case 110:
-                            Name = "BC Min";
-                            Control_Input(data_, tbBCMin);
-                            break;
+                        }
+                        break;
 
-                        case 112://平均化率
-                            Name = "平均化率";
-                            Control_Input(data_, tbAveRatio);
-                            break;
+                    case 242:
+                        Name = "Major << 8 | Minor(ATS-P)";
+                        P_VERSION_MINOR = val >> 8;
+                        P_VERSION_MAJOR = val & 0xFF;
+                        CommandWrite("RD 244");
+                        break;
+  
+                    case 244:
+                        Name = "Patch << 8 | Build(ATS-P)";
+                        P_VERSION_BUILD = val >> 8;
+                        P_VERSION_PATCH = val & 0xFF;
+                        if (P_TYPE == 0xFF)
+                        {
+                            P_VERSION = "バージョン不明";
+                        }
+                        else
+                        {
+                            P_VERSION_NUM = P_VERSION_MAJOR.ToString() + "." + P_VERSION_MINOR.ToString() + "." + P_VERSION_PATCH.ToString() + "." + P_VERSION_BUILD.ToString();
+                            P_VERSION = P_TYPE.ToString() + " " + P_VERSION_NUM;
+                            P_VERSION_SUM = P_VERSION_MAJOR << 24 | P_VERSION_MINOR << 16 | P_VERSION_PATCH << 8 | P_VERSION_BUILD;
+                        }
+                        tbATSPBoardVersion.Text = P_VERSION;
+                        break;
 
-                        case 114:
-                            Name = "モニタ間隔[msec]";
-                            Control_Input(data_, tbMonInterval);
-                            break;
-
-                        case 116:
-                            Name = "E電磁弁開放時間[msec]";
-                            if (val != 65535)
-                            {
-                                tbEBInterval.Text = (val * 0.001).ToString("0.0##");
-                            }
-                            break;
-
-                        case 118:
-                            Name = "EBしきい値[kPa]";
-                            Control_Input(data_, tbEBThreshold);
-                            break;
-
-                        case 124:
-                            Name = "FVPress Min [kPa]";
-                            Control_Input(data_, tbFVPressMin);
-                            break;
-
-                        case 126:
-                            Name = "FVPress Max [kPa]";
-                            Control_Input(data_, tbFVPressMax);
-                            break;
-                        case 128:
-                            Name = "BPPress Min [kPa]";
-                            Control_Input(data_, tbBPPressMin);
-                            break;
-                        case 130:
-                            Name = "BPPress Max [kPa]";
-                            Control_Input(data_, tbBPPressMax);
-                            break;
-
-                        case 132://BC最大圧力(急動部動作時)
-                            Name = "BC最大圧力(急動部動作時)[kPa]";
-                            Control_Input(data_, tbBCMax);
-                            break;
-
-                        case 134://BC最大圧力(常用時)
-                            Name = "BC最大圧力(常用時)[kPa]";
-                            Control_Input(data_, tbBCMaxNorm);
-                            break;
-
-                        case 136://BC倍率(急動部動作時)
-                            Name = "BC倍率(急動部動作時)[kPa]";
-                            if (val != 65535)
-                            {
-                                tbBCMulti.Text = (val * 0.1).ToString("0.0");
-                            }
-                            break;
-
-                        case 138://BC倍率(常用時)
-                            Name = "BC倍率(常用時)";
-                            if (val != 65535)
-                            {
-                                tbBCMultiNorm.Text = (val * 0.1).ToString("0.0");
-                            }
-                            break;
-
-                        case 140://ATS-S電源投入時間
-                            Name = "ATS-S電源投入時間[msec]";
-                            if (val != 65535)
-                            {
-                                tbAtsSDengenTounyuTime.Text = (val * 0.001).ToString("0.0##");
-                            }
-                            break;
-
-
-                        case 142://急動部動作BP減速度しきい値
-                            Name = "急動部動作BP減速度しきい値";
-                            if (val != 65535)
-                            {
-                                tbBPvelocityKyudouThreshold.Text = val.ToString();
-                            }
-                            break;
-
-
-                        case 144:  //制御弁モード A制御弁(0) E制御弁(1)
-                            Name = "制御弁モード A制御弁(0) E制御弁(1)";
-                            if (val == 0)
-                            {
-                                tabControl2.TabIndex = 0;
-                            }
-                            else
-                            {
-                                tabControl2.TabIndex = 1;
-                            }
-                            break;
-
-
-                        case 146://BC最大圧力(E制御弁)
-                            Name = "BC最大圧力(E制御弁)[kPa]";
-                            Control_Input(data_, tbBCMaxE);
-                            break;
-
-                        case 148://BC倍率(E制御弁)
-                            Name = "BC倍率(E制御弁)";
-                            if (val != 65535)
-                            {
-                                tbBCMultiE.Text = (val * 0.1).ToString("0.0");
-                            }
-                            break;
-
-
-                        case 150://平均化率(E制御弁)
-                            Control_Input(data_, tbAveRatioE);
-                            break;
-
-                        case 152: //E電磁弁遅延時間
-                            Name = "E電磁弁遅延時間[msec]";
-                            if (val != 65535)
-                            {
-                                tbEBOndelay.Text = (val * 0.001).ToString("0.0##");
-                            }
-                            break;
-
-
-                        case 154://電空レギュレータ電源OFF時間
-                            Name = "電空レギュレータ電源OFF時間[msec]";
-                            if (val != 65535)
-                            {
-                                tbRegOffDelay.Text = (val * 0.001).ToString("0.0##");
-                            }
-                            break;
-
-
-                        case 156://FVを490kPaに固定　(0:false 1:true)
-                            Name = "FVを490kPaに固定";
-                            if (val != 65535)
-                            {
-                                cbFVhold.Checked = (val == 1);
-                            }
-                            break;
-
-                        case 190://基板種類
-                            Name = "基板種類(電制表示灯基板)";
-                            timerDispBoardFinder.Stop();
-                            gpbDispBoard.Enabled = true;
-                            btnOpenDensei.Visible = true;
-                            cbPortSelectDensei.Visible = true;
-                            if (!flgControllerBoardFound)
-                            {
-                                pnlDispBoard.Enabled = true;
-                                btnFirmBackupD.Enabled = true;
-                                btnEepromLoadD.Enabled = true;
-                            }
-                            else
-                            {
-                                pnlDispBoard.Enabled = false;
-                                btnFirmBackupD.Enabled = false;
-                                btnEepromLoadD.Enabled = false;
-                            }
-                            val &= 0xFF;
-                            D_TYPE = (char)val;
-                            if (D_TYPE == 'D' || val == 0xFF)
-                            {
-                                CommandWrite("RD 192");
-                                board_Disp = true;
-                                SwitchDispBoard(true);
-                            }
-                            break;
-
-                        case 192:
-                            timerDispBoardFinder.Stop();
-                            Name = "Major << 8 | Minor(電制表示灯基板)";
-                            D_VERSION_MINOR = val >> 8;
-                            D_VERSION_MAJOR = val & 0xFF;
-                            CommandWrite("RD 194");
-                            break;
-
-                        case 194:
-                            timerDispBoardFinder.Stop();
-                            Name = "Patch << 8 | Build(電制表示灯基板)";
-                            D_VERSION_BUILD = val >> 8;
-                            D_VERSION_PATCH = val & 0xFF;
-                            if (D_TYPE == 0xFF)
-                            {
-                                D_VERSION = "バージョン不明";
-                            }
-                            else
-                            {
-                                D_VERSION_NUM = D_VERSION_MAJOR.ToString() + "." + D_VERSION_MINOR.ToString() + "." + D_VERSION_PATCH.ToString() + "." + D_VERSION_BUILD.ToString();
-                                D_VERSION = D_TYPE.ToString() + " " + D_VERSION_NUM;
-                                D_VERSION_SUM = C_VERSION_MAJOR << 24 | C_VERSION_MINOR << 16 | C_VERSION_PATCH << 8 | C_VERSION_BUILD;
-                            }
-                            tbDispBoardVersion.Text = D_VERSION;
-                            break;
-
-                        case 200://ATS-P 自動電源表示 自動(1)/強制(0)
-                            Name = "ATS-P自動電源表示 自動(1)/ 強制(0)";
-                            cbAtsPDengenAuto.Checked = (val != 0);
-                            break;
-
-                        case 202://ATS-P East(1)/West(0)
-                            Name = "ATS-P East(1)/West(0)";
-                            if (val != 65535)
-                            {
-                                rbPEast.Checked = (val != 0);
-                                rbPWest.Checked = (val == 0);
-                            }
-                            break;
-
-                        case 204:   //ATS未投入防止 1bit:(1)警報器(0)警報装置 2bit:(1)2ノッチ(0)3ノッチ                     {
-                            Name = "ATS未投入防止";
-                            if (val != 65535)
-                            {
-                                rbATS.Checked = (val == 0);
-                                rbATS2.Checked = (val == 3);
-                                rbATS3.Checked = (val == 1);
-                            }
-                            break;
-
-                        case 206://BZ21強制停止タイマー
-                            break;
-
-                        case 208:  //ATS-P(West)表示灯点灯遅延タイマ
-                            Name = "ATS-P(West)表示灯点灯遅延タイマ";
-                            if (val != 65535)
-                            {
-                                tbAtsPDengenTounyuTime.Text = (val * 0.001).ToString("0.0##");
-                            }
-                            break;
-
-                        case 240://基板種類
-                            Name = "基板種類(ATS-P)";
-                            timerATSPBoardFinder.Stop();
-                            gpbATSP.Enabled = true;
-                            btnOpenATSP.Visible = true;
-                            cbPortSelectATSP.Visible = true;
-                            if (!flgControllerBoardFound)
-                            {
-                                pnlATSPBoard.Enabled = true;
-                                btnFirmBackupP.Enabled = true;
-                                btnEepromLoadP.Enabled = true;
-                            }
-                            else
-                            {
-                                pnlATSPBoard.Enabled = false;
-                                btnFirmBackupP.Enabled = false;
-                                btnEepromLoadP.Enabled = false;
-                            }
-                            val &= 0xFF;
-                            P_TYPE = (char)val;
-                            if (P_TYPE == 'P' || val == 0xFF)
-                            {
-                                CommandWrite("RD 242");
-                                board_ATSP = true;
-                                SwitchATSPBoard(true);
-
-                            }
-                            break;
-
-                        case 242:
-                            Name = "Major << 8 | Minor(ATS-P)";
-                            P_VERSION_MINOR = val >> 8;
-                            P_VERSION_MAJOR = val & 0xFF;
-                            CommandWrite("RD 244");
-                            break;
-
-                        case 244:
-                            Name = "Patch << 8 | Build(ATS-P)";
-                            P_VERSION_BUILD = val >> 8;
-                            P_VERSION_PATCH = val & 0xFF;
-                            if (P_TYPE == 0xFF)
-                            {
-                                P_VERSION = "バージョン不明";
-                            }
-                            else
-                            {
-                                P_VERSION_NUM = P_VERSION_MAJOR.ToString() + "." + P_VERSION_MINOR.ToString() + "." + P_VERSION_PATCH.ToString() + "." + P_VERSION_BUILD.ToString();
-                                P_VERSION = P_TYPE.ToString() + " " + P_VERSION_NUM;
-                                P_VERSION_SUM = C_VERSION_MAJOR << 24 | C_VERSION_MINOR << 16 | C_VERSION_PATCH << 8 | C_VERSION_BUILD;
-                            }
-                            tbATSPBoardVersion.Text = P_VERSION;
-                            break;
-
-                        case 250://基板種類
-                            Name = "基板種類(B1-Sim)";
-                            //timerB1SimBoardFinder.Stop();
-                            //gpbATSP.Enabled = true;
-                            //btnOpenATSP.Visible = true;
-                            //cbPortSelectATSP.Visible = true;
-                            /*if (!flgControllerBoardFound)
-                            {
-                                pnlATSPBoard.Enabled = true;
-                                btnFirmBackupP.Enabled = true;
-                                btnEepromLoadP.Enabled = true;
-                            }
-                            else
-                            {
-                                pnlATSPBoard.Enabled = false;
-                                btnFirmBackupP.Enabled = false;
-                                btnEepromLoadP.Enabled = false;
-                            }*/
-                            val &= 0xFF;
-                            B_TYPE = (char)val;
-                            if (B_TYPE == 'B' || val == 0xFF)
-                            {
-                                CommandWrite("RD 252");
-                                board_B1Sim = true;
-                                //SwitchB1SimBoard(true);
-
-                            }
-                            break;
-
-                        case 252:
-                            Name = "Major << 8 | Minor(B1-Sim)";
-                            B_VERSION_MINOR = val >> 8;
-                            B_VERSION_MAJOR = val & 0xFF;
-                            CommandWrite("RD 254");
-                            break;
-
-                        case 254:
-                            Name = "Patch << 8 | Build(B1-Sim)";
-                            B_VERSION_BUILD = val >> 8;
-                            B_VERSION_PATCH = val & 0xFF;
-                            if (B_TYPE == 0xFF)
-                            {
-                                B_VERSION = "バージョン不明";
-                            }
-                            else
-                            {
-                                B_VERSION_NUM = B_VERSION_MAJOR.ToString() + "." + B_VERSION_MINOR.ToString() + "." + B_VERSION_PATCH.ToString() + "." + B_VERSION_BUILD.ToString();
-                                B_VERSION = B_TYPE.ToString() + " " + B_VERSION_NUM;
-                                B_VERSION_SUM = B_VERSION_MAJOR << 24 | B_VERSION_MINOR << 16 | B_VERSION_PATCH << 8 | B_VERSION_BUILD;
-                            }
-                            //tbB1SimBoardVersion.Text = B_VERSION;
-                            break;
-                    }
 
                 }
                 if(Name != "")
@@ -1453,7 +1446,7 @@ namespace SELDController
             }
             
             //FV BP読出し
-            else if (data_.StartsWith("FV(V)="))
+            else if (data_all_.StartsWith("FV(V)="))
             {
                 tbFV_V.Text = data_.Substring(data_.IndexOf("FV(V)=") + 6, 4);
                 tbBP_V.Text = data_.Substring(data_.IndexOf("BP(V)=") + 6, 4);
@@ -1577,8 +1570,28 @@ namespace SELDController
                     timer1.Start();
                 }
                 Command_Sender(str);
-                if (cbThreadSleep.Checked) Thread.Sleep(50);
+                Thread.Sleep(50);
                 str_latch = str;
+            }
+        }
+
+        /// <summary>
+        /// CommandWriteの非同期版。Thread.Sleepの代わりにawait Task.Delayで待つため、
+        /// 待機中もUIスレッドが受信データの処理・ログ表示を行える。
+        /// </summary>
+        private async Task CommandWriteAsync(string str, bool need_response = false)
+        {
+            if ((serialPortMain.IsOpen || isBveRunning) && str_latch != str)
+            {
+                if (need_response)
+                {
+                    tsslError.Text = "";
+                    tsslError.BackColor = SystemColors.Control;
+                    timer1.Start();
+                }
+                Command_Sender(str);
+                str_latch = str;
+                await Task.Delay(50);
             }
         }
         //開始時間の取得
@@ -2013,56 +2026,69 @@ namespace SELDController
             Disp();
         }
 
-        private void btnBrkRead_Click(object sender, EventArgs e)
+        private async void btnBrkRead_Click(object sender, EventArgs e)
+        {
+            await BrkReadAsync();
+        }
+
+        private async Task BrkReadAsync()
         {
             serialPortMain.DiscardInBuffer();
-            //CommandWrite("RD BRK", true);
-            CommandWrite("RD 000", true);//ポテンショN位置
-            CommandWrite("RD 002", true);//ポテンショEB位置
-            CommandWrite("RD 004", true);//ブレーキ段数
-            CommandWrite("RD 006", true);//直通帯幅
-            CommandWrite("RD 008", true);//非常角度位置
-            CommandWrite("RD 010", true);//ブレーキ全体角度
+            //await CommandWriteAsync("RD BRK", true);
+            await CommandWriteAsync("RD 000", true);//ポテンショN位置
+            await CommandWriteAsync("RD 002", true);//ポテンショEB位置
+            await CommandWriteAsync("RD 004", true);//ブレーキ段数
+            await CommandWriteAsync("RD 006", true);//直通帯幅
+            await CommandWriteAsync("RD 008", true);//非常角度位置
+            await CommandWriteAsync("RD 010", true);//ブレーキ全体角度
 
-            CommandWrite("RD 046", true);//回生モード
-            CommandWrite("RD 048", true);//計器モード
-            CommandWrite("RD 050", true);//電流値上限
-            CommandWrite("RD 052", true);//列車抵抗
+            await CommandWriteAsync("RD 046", true);//回生モード
+            await CommandWriteAsync("RD 048", true);//計器モード
+            await CommandWriteAsync("RD 050", true);//電流値上限
+            await CommandWriteAsync("RD 052", true);//列車抵抗
 
-            CommandWrite("RD 054", true);//チャタリング防止
-            CommandWrite("RD 056", true);//常用最大角度
-            CommandWrite("RD 058", true);//直通帯最小角度
-            CommandWrite("RD 060", true);//自動帯常用開始角度
-            CommandWrite("RD 062", true);//自動帯常用全開角度
-            CommandWrite("RD 064", true);//自動帯減圧インターバル
-            CommandWrite("RD 066", true);//自動帯増圧インターバル
-            CommandWrite("RD 068", true);//自動帯使用
-            CommandWrite("RD 070", true);//マスコン段数(コントローラー)
-            CommandWrite("RD 072", true);//マスコン段数(BVE車両)
-            CommandWrite("RD 074", true);//警報持続B接点
-            CommandWrite("RD 076", true);//ATS確認ボタンB接点
-            CommandWrite("RD 078", true);//自動ノッチ合わせ
-            CommandWrite("RD 080", true);//実際のエアー圧で自動帯再現
-            CommandWrite("RD 082", true);//ATS接点を使用して他基板へ転送する
-            CommandWrite("RD 084", true);//ATS電源角度
+            await CommandWriteAsync("RD 054", true);//チャタリング防止
+            await CommandWriteAsync("RD 056", true);//常用最大角度
+            await CommandWriteAsync("RD 058", true);//直通帯最小角度
+            await CommandWriteAsync("RD 060", true);//自動帯常用開始角度
+            await CommandWriteAsync("RD 062", true);//自動帯常用全開角度
+            await CommandWriteAsync("RD 064", true);//自動帯減圧インターバル
+            await CommandWriteAsync("RD 066", true);//自動帯増圧インターバル
+            await CommandWriteAsync("RD 068", true);//自動帯使用
+            await CommandWriteAsync("RD 070", true);//マスコン段数(コントローラー)
+            await CommandWriteAsync("RD 072", true);//マスコン段数(BVE車両)
+            await CommandWriteAsync("RD 074", true);//警報持続B接点
+            await CommandWriteAsync("RD 076", true);//ATS確認ボタンB接点
+            await CommandWriteAsync("RD 078", true);//自動ノッチ合わせ
+            await CommandWriteAsync("RD 080", true);//実際のエアー圧で自動帯再現
+            await CommandWriteAsync("RD 082", true);//ATS接点を使用して他基板へ転送する
+            await CommandWriteAsync("RD 084", true);//ATS電源角度
             btnBrkSave.Enabled = true;
         }
 
-        private void btnSpdRead_Click(object sender, EventArgs e)
+        private async void btnSpdRead_Click(object sender, EventArgs e)
         {
-            btnSpdSetRead_Click(sender, e);
+            await SpdReadAsync();
+        }
+
+        private async Task SpdReadAsync()
+        {
+            await SpdSetReadAsync();
             if (board_Disp)
             {
-                CommandWrite("RD 122", true);//ATS_Active_Mode 0:鳴動なし 1以上:鳴動許可
-                CommandWrite("RD 140", true);//ATS-S 電源投入時間
+                await CommandWriteAsync("RD 122", true);//ATS_Active_Mode 0:鳴動なし 1以上:鳴動許可
+                await CommandWriteAsync("RD 140", true);//ATS-S 電源投入時間
+                await CommandWriteAsync("RD 120", true);//ATS電源モード
+                await CommandWriteAsync("RD 180", true);//ユニット表示タイプ
+                await CommandWriteAsync("RD 182", true);//ユニット表示灯数
             }
             if (board_ATSP)
             {
-                CommandWrite("RD 200", true);//ATS-P 電源自動モード
-                CommandWrite("RD 202", true);//ATS-P East(1)/West(0)
-                CommandWrite("RD 204", true);//ATS未投入防止 1bit:(1)警報器(0)警報装置 2bit:(1)2ノッチ(0)3ノッチ
-                CommandWrite("RD 206", true);//206 BZ21強制停止タイマー
-                CommandWrite("RD 208", true);//208 ATS-P(West)表示灯点灯遅延タイマ
+                await CommandWriteAsync("RD 200", true);//ATS-P 電源自動モード
+                await CommandWriteAsync("RD 202", true);//ATS-P East(1)/West(0)
+                await CommandWriteAsync("RD 204", true);//ATS未投入防止 1bit:(1)警報器(0)警報装置 2bit:(1)2ノッチ(0)3ノッチ
+                await CommandWriteAsync("RD 206", true);//206 BZ21強制停止タイマー
+                await CommandWriteAsync("RD 208", true);//208 ATS-P(West)表示灯点灯遅延タイマ
 
             }
             btnSpdSave.Enabled = true;
@@ -2078,18 +2104,12 @@ namespace SELDController
         private int maxLogLines = 50;
         private void tbLog_TextChanged(object sender, EventArgs e)
         {
-            //ログテキストボックスの行数上限処理
-            if (tbLog.Lines.Count() > maxLogLines)
+            //ログテキストボックスの行数上限処理(古い行から順に削除する)
+            int excess = tbLog.Lines.Length - maxLogLines;
+            if (excess > 0)
             {
-                //リスト化
                 List<string> lines = new List<string>(tbLog.Lines);
-                //余剰行分を削除
-                for (int i = 0; tbLog.Lines.Count() - maxLogLines > i; i++)
-                {
-                    lines.RemoveAt(i); // 1行目削除
-
-                }
-                //リストを再度テキストボックスに結合
+                lines.RemoveRange(0, excess);
                 tbLog.Text = String.Join("\r\n", lines);
             }
         }
@@ -2398,7 +2418,7 @@ namespace SELDController
             }
             if (board_Disp)
             {
-                btnAtsSDengenTounyuTime_Click(sender, e); //140
+                btnAtsSDengenTounyuTimeE_Click(sender, e); //140
             }
             Disp();
             Settings.Default.Save();
@@ -2847,34 +2867,42 @@ namespace SELDController
                 btnBCMin_Click(sender, e);
             }
         }
-        private void btnPressRead_Click(object sender, EventArgs e)
+        private async void btnPressRead_Click(object sender, EventArgs e)
+        {
+            await PressReadAsync();
+        }
+
+        private async Task PressReadAsync()
         {
             if (board_Disp)
             {
-                CommandWrite("RD 102", true);
-                CommandWrite("RD 104", true);
-                CommandWrite("RD 106", true);
-                CommandWrite("RD 108", true);
-                CommandWrite("RD 110", true);
-                CommandWrite("RD 112", true); //平均化率(A制御弁)
-                CommandWrite("RD 114", true);
-                CommandWrite("RD 116", true);
-                CommandWrite("RD 118", true); //E電磁弁開放開始圧力
+                await CommandWriteAsync("RD 102", true);
+                await CommandWriteAsync("RD 104", true);
+                await CommandWriteAsync("RD 106", true);
+                await CommandWriteAsync("RD 108", true);
+                await CommandWriteAsync("RD 110", true);
+                await CommandWriteAsync("RD 112", true); //平均化率(A制御弁)
+                await CommandWriteAsync("RD 114", true);
+                await CommandWriteAsync("RD 116", true);
+                await CommandWriteAsync("RD 118", true); //E電磁弁開放開始圧力
 
-                CommandWrite("RD 124", true);
-                CommandWrite("RD 126", true);
-                CommandWrite("RD 128", true);
-                CommandWrite("RD 130", true);
-                CommandWrite("RD 132", true); //BC最大圧力(急動部動作時)
-                CommandWrite("RD 134", true); //BC最大圧力(常用時)
-                CommandWrite("RD 136", true); //BC倍率(急動部動作時)
-                CommandWrite("RD 138", true); //BC倍率(常用時)
+                await CommandWriteAsync("RD 124", true);
+                await CommandWriteAsync("RD 126", true);
+                await CommandWriteAsync("RD 128", true);
+                await CommandWriteAsync("RD 130", true);
+                await CommandWriteAsync("RD 132", true); //BC最大圧力(急動部動作時)
+                await CommandWriteAsync("RD 134", true); //BC最大圧力(常用時)
+                await CommandWriteAsync("RD 136", true); //BC倍率(急動部動作時)
+                await CommandWriteAsync("RD 138", true); //BC倍率(常用時)
 
-                CommandWrite("RD 142", true); //急動部動作しきい値
-                CommandWrite("RD 144", true); //A制御弁(0) E制御弁(1)
-                CommandWrite("RD 146", true); //BC最大圧力(E制御弁)
-                CommandWrite("RD 148", true); //BC倍率(E制御弁)
-                CommandWrite("RD 150", true); //平均化率(E制御弁)
+                await CommandWriteAsync("RD 142", true); //急動部動作しきい値
+                await CommandWriteAsync("RD 144", true); //A制御弁(0) E制御弁(1)
+                await CommandWriteAsync("RD 146", true); //BC最大圧力(E制御弁)
+                await CommandWriteAsync("RD 148", true); //BC倍率(E制御弁)
+                await CommandWriteAsync("RD 150", true); //平均化率(E制御弁)
+                await CommandWriteAsync("RD 152", true); //E電磁弁遅延時間
+                await CommandWriteAsync("RD 154", true); //電空レギュレータ電源OFF時間
+                await CommandWriteAsync("RD 156", true); //FVを490kPaに固定
 
 
                 btnPressSave.Enabled = true;
@@ -3255,11 +3283,22 @@ namespace SELDController
             }
         }
 
-        private void btnSetReadAll_Click(object sender, EventArgs e)
+        private bool isReadingAll = false;
+        private async void btnSetReadAll_Click(object sender, EventArgs e)
         {
-            btnSpdRead_Click(sender, e);
-            btnBrkRead_Click(sender, e);
-            btnPressRead_Click(sender, e);
+            if (isReadingAll) return; // 読出し中の二重実行を防止
+            isReadingAll = true;
+            try
+            {
+                // UIスレッドを止めずに送信するため、受信結果が逐次ログに表示される
+                await SpdReadAsync();
+                await BrkReadAsync();
+                await PressReadAsync();
+            }
+            finally
+            {
+                isReadingAll = false;
+            }
             if (btnSetReadAll.BackColor == Color.Salmon)
             {
                 btnSetReadAll.BackColor = SystemColors.Control;
@@ -3348,20 +3387,20 @@ namespace SELDController
             }
         }
 
-        private void tbAtsSDengenTounyuTime_KeyDown(object sender, KeyEventArgs e)
+        private void tbAtsSDengenTounyuTimeE_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {
-                btnAtsSDengenTounyuTime_Click(sender, e);
+                btnAtsSDengenTounyuTimeE_Click(sender, e);
             }
         }
 
-        private void btnAtsSDengenTounyuTime_Click(object sender, EventArgs e)
+        private void btnAtsSDengenTounyuTimeE_Click(object sender, EventArgs e)
         {
             if (board_Disp)
             {
-                double.TryParse(tbAtsSDengenTounyuTime.Text, out double d);
-                Settings.Default.AtsDengenTounyuTime = (int)(d * 1000);
+                double.TryParse(tbAtsSDengenTounyuTimeE.Text, out double d);
+                Settings.Default.AtsDengenTounyuTimeE = (int)(d * 1000);
                 CommandWrite("WR 140 " + (int)(d * 1000), true);
             }
         }
@@ -3525,7 +3564,12 @@ namespace SELDController
             {
                 CommandWrite("WR 202 " + 0, true);
             }
-            tbAtsPDengenTounyuTime.Enabled = true;
+            btnAtsSDengenTounyuTimeW_Click(sender, e);
+
+            tbAtsPDengenTounyuTimeE.Enabled = false;
+            tbAtsPDengenTounyuTimeW.Enabled = true;
+            tbAtsSDengenTounyuTimeE.Enabled = false;
+            tbAtsSDengenTounyuTimeW.Enabled = true;
         }
 
         private void rbPEast_Click(object sender, EventArgs e)
@@ -3534,7 +3578,12 @@ namespace SELDController
             {
                 CommandWrite("WR 202 " + 1, true);
             }
-            tbAtsPDengenTounyuTime.Enabled = false;
+            btnAtsSDengenTounyuTimeE_Click(sender, e);
+
+            tbAtsPDengenTounyuTimeE.Enabled = true;
+            tbAtsPDengenTounyuTimeW.Enabled = false;
+            tbAtsSDengenTounyuTimeE.Enabled = true;
+            tbAtsSDengenTounyuTimeW.Enabled = false;
         }
 
         private void tabControl1_KeyPress(object sender, KeyPressEventArgs e)
@@ -3567,7 +3616,12 @@ namespace SELDController
             }
         }
 
-        private void btnSpdSetRead_Click(object sender, EventArgs e)
+        private async void btnSpdSetRead_Click(object sender, EventArgs e)
+        {
+            await SpdSetReadAsync();
+        }
+
+        private async Task SpdSetReadAsync()
         {
             if (serialPortMain.IsOpen)
             {
@@ -3584,7 +3638,7 @@ namespace SELDController
                 tbarSpdTest.Value = val;
                 tbSpdTest.Text = tbarSpdTest.Value.ToString();
                 //}
-                CommandWrite("RD " + i.ToString("D3"), true);
+                await CommandWriteAsync("RD " + i.ToString("D3"), true);
             }
 
             btnSpdSetSave.Enabled = true;
@@ -3634,7 +3688,6 @@ namespace SELDController
         }
 
         private bool board_ATSP = false;
-        private bool board_B1Sim = false;
 
         private void tsmiATSPBoard_Click(object sender, EventArgs e)
         {
@@ -4381,7 +4434,15 @@ namespace SELDController
             ArduinoFinder(out bool found);
             if (found)
             {
-                await AvrWriter_32u4("write", "flash", "ファームウェアの書き込み", tbHexFilePathC.Text);
+                // 第3引数は "hex" に変更
+                if (flgFirmWareATSPRW)
+                {
+                    await AvrWriter_4809("write", "flash", "ファームウェアの書き込み", tbHexFilePathC.Text);
+                }
+                else
+                {
+                    await AvrWriter_32u4("write", "flash", "ファームウェアの書き込み", tbHexFilePathC.Text);
+                }
             }
             else
             {
@@ -4418,8 +4479,7 @@ namespace SELDController
         private async Task FirmBackup(string version_num, string board_name,string fileName)
         {
             // 仮のバージョン変数（実際には既に取得済みの変数名に置き換えてください）
-            // 三項演算子を使って、nullまたは空文字なら "default" を代入
-            string currentVersion = string.IsNullOrEmpty(version_num) ? "0.0.0.0" : version_num;
+            string currentVersion = version_num;
 
             // 1. パスを安全に結合してバックアップ先のフルパスを作成
             string baseDir = AppDomain.CurrentDomain.BaseDirectory; // 実行ファイルの場所 (bin等)
@@ -4487,26 +4547,10 @@ namespace SELDController
             string targetComPort = serialPortMain.PortName;
             if (flgFirmWareDenseiRW)
             {
-                if(gpbControllerBoard.Enabled)
-                {
-                    targetComPort = serialPortDensei.PortName;
-                }
-                else
-                {
-                    targetComPort = serialPortMain.PortName;
-                }
                 targetComPort = serialPortDensei.PortName;
-            }
-            else if (flgFirmWareATSPRW)
+            }else if (flgFirmWareATSPRW)
             {
-                if (gpbControllerBoard.Enabled)
-                {
-                    targetComPort = serialPortATSP.PortName;
-                }
-                else
-                {
-                    targetComPort = serialPortMain.PortName;
-                }
+                targetComPort = serialPortATSP.PortName;
             }
             if (string.IsNullOrEmpty(targetComPort))
             {
@@ -4516,94 +4560,52 @@ namespace SELDController
 
             targetComPort = targetComPort.ToUpper();
 
-            // 状態を管理するフラグ
-            bool isArduinoDevice = false;
-            bool isDriverMissing = false;
-
-            using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PnPEntity WHERE Name LIKE '%(COM%)'")) // COMポートのみに絞り込んで高速化
+            // WMIクエリでCOMポート情報を取得
+            using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PnPEntity"))
             {
                 foreach (var device in searcher.Get())
                 {
                     string name = device["Name"]?.ToString();
                     string deviceId = device["DeviceID"]?.ToString();
 
-                    if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(deviceId)) continue;
-
-                    // 指定されたCOMポート番号（例: "COM3"）が含まれているか確認
-                    if (name.Contains(targetComPort))
+                    // 指定されたCOMポート番号を含むデバイスを検索
+                    if (!string.IsNullOrEmpty(name) && name.Contains(targetComPort))
                     {
-                        string vid = ExtractValue(deviceId, "VID_");
-                        string pid = ExtractValue(deviceId, "PID_");
 
-                        // Substringによるエラーを防ぐため、4文字以上あるかチェック
-                        if (pid != null && pid.Length >= 4)
+                        // PIDとVIDを抽出
+                        if (!string.IsNullOrEmpty(deviceId))
                         {
-                            pid = pid.Substring(0, 4);
-                        }
+                            string vid = ExtractValue(deviceId, "VID_");
+                            string pid = ExtractValue(deviceId, "PID_").Substring(0, 4);
 
-                        // 【修正】文字列として比較（" " で囲む）
-                        if (vid == "2341" && (pid == "8037" || pid == "0058"))
-                        {
-                            // 【修正】ループ内ではフラグの更新のみを行う
-                            if (name.StartsWith("Arduino"))
+                            if (vid == "2341" &&(pid == "8037" || pid == "0058"))
                             {
-                                isArduinoDevice = true;
-                                break; // 正規のArduinoが見つかったらループを抜ける
+                                //Arduinoが認識されているかを判別
+                                if (name.StartsWith("Arduino"))
+                                {
+                                    llArduinoIde.Visible = false;
+                                    lblArduinoInstall.Visible = false;
+                                    found = true;
+                                }
+                                else
+                                {
+                                    MessageBox.Show("Arduinoを認識しましたが、ドライバが見つかりません。\n\nArduino IDEをインストールしてください。");
+                                    llArduinoIde.Visible = true;                                    
+                                    lblArduinoInstall.Visible = true;
+                                    btnDriverInstall.Visible = true;
+                                    flgDriverinstall = true;
+                                    DriverInstall();
+                                }
                             }
-                            else
-                            {
-                                isDriverMissing = true; // デバイスはあるがドライバがない状態
-                            }
+
                         }
                     }
                 }
-            }
 
-            // 【修正】すべての検索が終わった後に、結果に応じたUI処理を行う
-            if (isArduinoDevice)
-            {
-                // パターンA: 正規のArduinoとして認識されている場合
-                llArduinoIde.Visible = false;
-                lblArduinoInstall.Visible = false;
-
-                found = true; // 👈【共通化】接続成功時の処理を実行
-            }
-            else if (isDriverMissing)
-            {
-                // パターンB: デバイスはあるがドライバがない（名前がArduinoから始まらない）場合
-                // 【修正】「はい / いいえ」の選択肢を表示
-                DialogResult result = MessageBox.Show(
-                    "Arduinoを認識しましたが、ドライバがインストールされていない可能性があります。\n\n" +
-                    "ドライバをインストールしていない場合、正常に動作しない恐れがあります。\n" +
-                    "このまま接続を続行しますか？\n\n" +
-                    "※続行しない場合は、ドライバのインストール案内を表示します。",
-                    "ドライバ未検出の警告",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Warning
-                );
-
-                if (result == DialogResult.Yes)
+                if (!found && !flgDriverinstall)
                 {
-                    // 【修正】ユーザーが「はい」を選んだら、案内を隠して接続処理へ進む
-                    llArduinoIde.Visible = false;
-                    lblArduinoInstall.Visible = false;
-
-                    found = true; // 👈【共通化】接続成功時の処理を実行
+                    MessageBox.Show("Arduinoではないため接続ができません。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-                else
-                {
-                    // 【修正】ユーザーが「いいえ」を選んだら、従来通りインストールを促す
-                    llArduinoIde.Visible = true;
-                    lblArduinoInstall.Visible = true;
-                    btnDriverInstall.Visible = true;
-                    flgDriverinstall = true;
-                    DriverInstall();
-                }
-            }
-            else
-            {
-                // パターンC: 指定COMポートにArduino自体が見つからない場合
-                MessageBox.Show("Arduinoではないため接続ができません。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -4652,8 +4654,7 @@ namespace SELDController
         private async void EepromLoad(string version_num, string board_name, string fileName)
         {
             // 仮のバージョン変数（実際には既に取得済みの変数名に置き換えてください）
-            // 三項演算子を使って、nullまたは空文字なら "default" を代入
-            string currentVersion = string.IsNullOrEmpty(version_num) ? "0.0.0.0" : version_num;
+            string currentVersion = version_num;
 
             // 1. パスを安全に結合してバックアップ先のフルパスを作成
             string baseDir = AppDomain.CurrentDomain.BaseDirectory; // 実行ファイルの場所 (bin等)
@@ -4721,14 +4722,6 @@ namespace SELDController
 
         private async Task AvrWriter_32u4(string read_or_write, string flash_or_eeprom, string contents, string filepath)
         {
-            // ★追加: avrdudePath の存在チェック
-            if (!File.Exists(avrdudePath))
-            {
-                AppendLog($"エラー: avrdude が見つかりません。パス: {avrdudePath}\r\n");
-                MessageBox.Show($"avrdude が見つからないため、処理を中断しました。\nパス: {avrdudePath}",
-                                "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return; // 処理を実行せずに終了
-            }
             //string configPath = @".\avrdude\avrdude.conf";
             string configPath = @".\avrdude\8.0.0-arduino1\etc\avrdude.conf";
             string mcu = "atmega32u4";
@@ -4755,6 +4748,7 @@ namespace SELDController
                 }
                 tabControl1.Enabled = true;
                 tbLogRows.Text = "200";
+                maxLogLines = 200;
                 tabControl1.SelectedIndex = 3;
             
             }
@@ -4781,7 +4775,7 @@ namespace SELDController
                 while (retryCount < 20 && foundPort == null)
                 {
                     await Task.Delay(500);
-
+                    Thread.Sleep(500);
                     using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PnPEntity WHERE Name LIKE '%(COM%)'"))
                     {
                         foreach (ManagementObject device in searcher.Get())
@@ -4820,54 +4814,15 @@ namespace SELDController
             AppendLog($"コマンド引数: {arguments}\r\navrdudeを実行します...\r\n");
 
             int exitCode = -1;
-
-            // ★フリーズ対策：デッドロックを防ぐタスク完了ソースを用意
-            var outputCloseEvent = new TaskCompletionSource<bool>();
-            var errorCloseEvent = new TaskCompletionSource<bool>();
-
-            await Task.Run(() =>
+            try
             {
-                try
-                {
-                    Process process = new Process();
-                    process.StartInfo.FileName = avrdudePath;
-                    process.StartInfo.Arguments = arguments;
-
-                    process.StartInfo.RedirectStandardOutput = true;
-                    process.StartInfo.RedirectStandardError = true;
-                    process.StartInfo.UseShellExecute = false;
-                    process.StartInfo.CreateNoWindow = true;
-
-                    // ログの末尾（null）を検知してストリームが完全に閉じたことを保証する
-                    process.OutputDataReceived += (s, e) =>
-                    {
-                        if (e.Data != null) AppendLog(e.Data + "\r\n");
-                        else outputCloseEvent.SetResult(true);
-                    };
-                    process.ErrorDataReceived += (s, e) =>
-                    {
-                        if (e.Data != null) AppendLog(e.Data + "\r\n");
-                        else errorCloseEvent.SetResult(true);
-                    };
-
-                    process.Start();
-
-                    process.BeginOutputReadLine();
-                    process.BeginErrorReadLine();
-
-                    // プロセス自体の終了を待機
-                    process.WaitForExit();
-
-                    // ★超重要：出力ストリームが完全にフラッシュされるまで非同期で待つ（フリーズ防止）
-                    Task.WaitAll(new Task[] { outputCloseEvent.Task, errorCloseEvent.Task }, 3000);
-
-                    exitCode = process.ExitCode;
-                }
-                catch (Exception ex)
-                {
-                    AppendLog($"例外発生: {ex.Message}\r\n");
-                }
-            });
+                // avrdudeの出力を文字単位でリアルタイムにtbLogへ表示しながら実行
+                exitCode = await RunAvrdudeAsync(arguments);
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"例外発生: {ex.Message}\r\n");
+            }
 
             // 結果の処理
             if (exitCode == 0)
@@ -4898,14 +4853,6 @@ namespace SELDController
 
         private async Task AvrWriter_4809(string read_or_write, string flash_or_eeprom, string contents, string filepath)
         {
-            // ★追加: avrdudePath の存在チェック
-            if (!File.Exists(avrdudePath))
-            {
-                AppendLog($"エラー: avrdude が見つかりません。パス: {avrdudePath}\r\n");
-                MessageBox.Show($"avrdude が見つからないため、処理を中断しました。\nパス: {avrdudePath}",
-                                "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return; // 処理を実行せずに終了
-            }
             //string configPath = @".\avrdude\avrdude.conf";
             string configPath = @".\avrdude\8.0.0-arduino1\etc\avrdude.conf";
             string mcu = "atmega4809";
@@ -4933,10 +4880,11 @@ namespace SELDController
                 }
                 else
                 {
-                    serialPort1Close();
+                    //serialPort1Close();未実装
                 }
                 tabControl1.Enabled = true;
                 tbLogRows.Text = "200";
+                maxLogLines = 200;
                 tabControl1.SelectedIndex = 3;
 
             }
@@ -5002,63 +4950,15 @@ namespace SELDController
             AppendLog($"コマンド引数: {arguments}\r\navrdudeを実行します...\r\n");
 
             int exitCode = -1;
-
-            // ★フリーズ対策：デッドロックを防ぐタスク完了ソースを用意
-            var outputCloseEvent = new TaskCompletionSource<bool>();
-            var errorCloseEvent = new TaskCompletionSource<bool>();
-
-            // 【修正】Task.Runの内部を完全に非同期化し、クロススレッド対策を実施
-            await Task.Run(async () =>
+            try
             {
-                try
-                {
-                    using (Process process = new Process())
-                    {
-                        process.StartInfo.FileName = avrdudePath;
-                        process.StartInfo.Arguments = arguments;
-                        process.StartInfo.RedirectStandardOutput = true;
-                        process.StartInfo.RedirectStandardError = true;
-                        process.StartInfo.UseShellExecute = false;
-                        process.StartInfo.CreateNoWindow = true;
-
-                        // 【修正】Invokeを挟んでUIスレッドに安全にログを渡す
-                        process.OutputDataReceived += (s, e) =>
-                        {
-                            if (e.Data != null)
-                            {
-                                Invoke(new Action(() => AppendLog(e.Data + "\r\n")));
-                            }
-                            else outputCloseEvent.TrySetResult(true);
-                        };
-
-                        process.ErrorDataReceived += (s, e) =>
-                        {
-                            if (e.Data != null)
-                            {
-                                Invoke(new Action(() => AppendLog(e.Data + "\r\n")));
-                            }
-                            else errorCloseEvent.TrySetResult(true);
-                        };
-
-                        process.Start();
-
-                        process.BeginOutputReadLine();
-                        process.BeginErrorReadLine();
-
-                        process.WaitForExit();
-
-                        // 【修正】Task.WaitAll から 非同期の Task.WhenAll に変更（フリーズを完璧に防止）
-                        await Task.WhenAll(outputCloseEvent.Task, errorCloseEvent.Task);
-
-                        exitCode = process.ExitCode;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // 【修正】例外ログ出力にもInvokeを適用
-                    Invoke(new Action(() => AppendLog($"例外発生: {ex.Message}\r\n")));
-                }
-            });
+                // avrdudeの出力を文字単位でリアルタイムにtbLogへ表示しながら実行
+                exitCode = await RunAvrdudeAsync(arguments);
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"例外発生: {ex.Message}\r\n");
+            }
 
             // 結果の処理
             if (exitCode == 0)
@@ -5099,6 +4999,51 @@ namespace SELDController
                 // ★常に最新行（最下部）を表示するための処理を追加
                 tbLog.SelectionStart = tbLog.Text.Length; // 選択位置を末尾に移動
                 tbLog.ScrollToCaret();                    // カレット（カーソル）位置までスクロール
+            }
+        }
+
+        /// <summary>
+        /// avrdudeを実行し、標準出力/標準エラーを改行を待たずにtbLogへ流す。
+        /// (パイプ出力時のavrdudeは進捗の'#'を改行なしで出すため、行単位のイベントでは完了まで表示されない)
+        /// </summary>
+        private async Task<int> RunAvrdudeAsync(string arguments)
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = avrdudePath,
+                Arguments = arguments,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+
+            using (var process = new Process { StartInfo = psi })
+            {
+                process.Start();
+
+                // stdout / stderr を並行して最後(EOF)まで読み切る
+                Task tOut = PumpStreamAsync(process.StandardOutput);
+                Task tErr = PumpStreamAsync(process.StandardError);
+                await Task.WhenAll(tOut, tErr);
+
+                await Task.Run(() => process.WaitForExit());
+                return process.ExitCode;
+            }
+        }
+
+        /// <summary>
+        /// ストリームから届いた文字をそのままAppendLogする(改行待ちをしない)
+        /// </summary>
+        private async Task PumpStreamAsync(StreamReader reader)
+        {
+            char[] buf = new char[256];
+            int n;
+            while ((n = await reader.ReadAsync(buf, 0, buf.Length).ConfigureAwait(false)) > 0)
+            {
+                // CRを捨ててLFをCRLFに統一(チャンク境界で\r\nが分割されても崩れない)
+                string s = new string(buf, 0, n).Replace("\r", "").Replace("\n", "\r\n");
+                AppendLog(s); // AppendLog内でInvokeするので別スレッドから呼んでOK
             }
         }
 
@@ -5168,18 +5113,17 @@ namespace SELDController
                 serialPortDensei.DiscardInBuffer();
                 serialPortDensei.DiscardOutBuffer();
                 serialPortDensei.Close();
-                btnOpenDensei.Text = "通信開始";
-                btnSerialPortOpenDensei.Enabled = true;
-                flgSerialPortOpenDensei = false;
             }
             cbPortSelectDensei.Enabled = true;
             setSerialComboBox(cbPortSelectDensei, Settings.Default.portNameDensei);
             if (btnSerialPortOpenDensei.Visible)
             {
+                btnOpenDensei.Text = "通信開始";
+                btnSerialPortOpenDensei.Enabled = true;
                 pnlDispBoard.Enabled = false;
                 btnFirmBackupD.Enabled = false;
                 btnEepromLoadD.Enabled = false;
-
+                flgSerialPortOpenDensei = false;
                 cbPortSelectDensei.Enabled = true;
             }
         }
@@ -5484,38 +5428,17 @@ namespace SELDController
 
         private void FileChange(TextBox tb, string title, string filter)
         {
-            try
+            using (OpenFileDialog ofdHexFileChange = new OpenFileDialog())
             {
-                using (OpenFileDialog ofdHexFileChange = new OpenFileDialog())
+                ofdHexFileChange.Title = title;
+                ofdHexFileChange.Filter = filter;
+                ofdHexFileChange.InitialDirectory = Path.GetDirectoryName(tb.Text);
+
+                if (ofdHexFileChange.ShowDialog() == DialogResult.OK)
                 {
-                    ofdHexFileChange.Title = title;
-                    ofdHexFileChange.Filter = filter;
-
-                    // テキストボックスに入力がある場合のみ初期ディレクトリを設定
-                    if (!string.IsNullOrWhiteSpace(tb.Text))
-                    {
-                        string dir = Path.GetDirectoryName(tb.Text);
-                        if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir))
-                        {
-                            ofdHexFileChange.InitialDirectory = dir;
-                        }
-                    }
-
-                    if (ofdHexFileChange.ShowDialog() == DialogResult.OK)
-                    {
-                        tb.Text = ofdHexFileChange.FileName;
-                    }
+                    // 選択されたファイルパスをラベルに表示
+                    tb.Text = $"{ofdHexFileChange.FileName}";
                 }
-            }
-            catch (Exception ex)
-            {
-                // エラーメッセージをポップアップ表示
-                MessageBox.Show(
-                    $"ファイルの選択中にエラーが発生しました。\n詳細: {ex.Message}",
-                    "エラー",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
             }
         }
 
@@ -5847,6 +5770,24 @@ namespace SELDController
             }
         }
 
+        private void tbAtsSDengenTounyuTimeW_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                btnAtsSDengenTounyuTimeW_Click(sender, e);
+            }
+        }
+
+        private void btnAtsSDengenTounyuTimeW_Click(object sender, EventArgs e)
+        {
+            if (board_Disp)
+            {
+                double.TryParse(tbAtsSDengenTounyuTimeW.Text, out double d);
+                Settings.Default.AtsDengenTounyuTimeW = (int)(d * 1000);
+                CommandWrite("WR 140 " + (int)(d * 1000), true);
+            }
+        }
+
         private void tbATSDengenAngle_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
@@ -5867,7 +5808,7 @@ namespace SELDController
         {
             if (board_Disp)
             {
-                double.TryParse(tbAtsPDengenTounyuTime.Text, out double d);
+                double.TryParse(tbAtsPDengenTounyuTimeW.Text, out double d);
                 Settings.Default.AtsPDengenTounyuTime = (int)(d * 1000);
                 CommandWrite("WR 208 " + (int)(d * 1000), true);
             }
@@ -5963,12 +5904,13 @@ namespace SELDController
                                 string numStr = param.Num.PadLeft(3, '0');  // 不足分を0で埋める
 
                                 // "OK Num Data" の形式で文字列を構築
-                                string data_ = $"OK {numStr} {param.Data}";
+                                string data_all_ = $"OK {numStr} {param.Data}";
+                                string data_ = data_all_;
 
                                 // read_Settings() を呼び出す
-                                read_Settings(data_);
+                                read_Settings(data_all_, data_);
 
-                                AppendLog($"読込: {data_}\r\n");
+                                AppendLog($"読込: {data_all_}\r\n");
                             }
                             catch (Exception itemEx)
                             {
