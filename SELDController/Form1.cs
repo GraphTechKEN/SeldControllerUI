@@ -313,7 +313,13 @@ namespace SELDController
                 if (rawFiles.Length > 0)
                 {
                     // 2. バージョン順でソート（通常ファイルを優先するため、パスの文字数や名前の辞書順で並び替えます）
-                    var sortedFiles = rawFiles.OrderBy(f => f).ToList();
+                    //    文字列順だと 4.2.3.10 が 4.2.3.9 より前になり、古い版が初期選択されるため数値で比較して新しい順にする
+                    //    同じバージョン内は通常ファイルを先、バックアップ(.bak)を後に。Blink等バージョン不明は末尾
+                    var sortedFiles = rawFiles
+                        .OrderByDescending(f => ParseFirmVersion(f), new VersionArrayComparer())
+                        .ThenBy(f => f.EndsWith(".bak", StringComparison.OrdinalIgnoreCase))
+                        .ThenBy(f => f)
+                        .ToList();
 
                     // メンバー変数に確定した順序で記憶
                     searchFiles.AddRange(sortedFiles);
@@ -363,6 +369,30 @@ namespace SELDController
             }
         }
 
+
+        //パス中の "\4.2.3.14\" のようなバージョン表記を数値配列にする(見つからなければ空配列)
+        private static int[] ParseFirmVersion(string path)
+        {
+            Match m = Regex.Match(path, @"\\(\d+(?:\.\d+)+)\\");
+            if (!m.Success) return new int[0];
+            return m.Groups[1].Value.Split('.').Select(s => int.TryParse(s, out int n) ? n : 0).ToArray();
+        }
+
+        //バージョン数値配列の比較(桁が無い側を小さいとみなす。空配列=バージョン不明が最小)
+        private class VersionArrayComparer : IComparer<int[]>
+        {
+            public int Compare(int[] a, int[] b)
+            {
+                int len = Math.Max(a.Length, b.Length);
+                for (int i = 0; i < len; i++)
+                {
+                    int x = i < a.Length ? a[i] : -1;
+                    int y = i < b.Length ? b[i] : -1;
+                    if (x != y) return x.CompareTo(y);
+                }
+                return 0;
+            }
+        }
 
         /****************************************************************************/
         /*!
@@ -578,7 +608,9 @@ namespace SELDController
 
                 if (Settings.Default.first_boot)
                 {
-                    MessageBox.Show("初回接続です。\r\r[全設定値読出し]ボタンを押してください。", "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    MessageBox.Show("初回接続です。\r\r[全設定値読出し]ボタンを押してください。" +
+                        "\r\r念のため、メニューの[基板設定]→[オプション基板]から、" +
+                        "\r表示灯空制基板・ATS-P表示灯基板の選択状況を確認してください。", "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     btnSetReadAll.BackColor = Color.Salmon;
                     Settings.Default.first_boot = false;
                 }
@@ -629,6 +661,7 @@ namespace SELDController
                     serialPortMain.DtrEnable = true;
                     serialPortMain.Open();
                     rxBuffer = "";
+                    str_latch = null; //再接続後の最初のコマンドが重複扱いで送られない問題の対策
                     cbPortSelect.Enabled = false;
                     tabControl1.Enabled = true;
                     toolStripStatusLabel1.Text = "SerialPort1:Open " + serialPortMain.PortName;
@@ -657,6 +690,8 @@ namespace SELDController
             //serialPort2Close();
             flgSeldControllerFound = false;
             flgControllerBoardFound = false;
+            //模型モード/POTモードだったかは、下でチェックを外す前に判定しておく
+            bool needReset = cbModeN.Checked || cbPotMode.Checked;
             if (!isBveRunning)
             {
                 flgFirstReadCheck = false;
@@ -713,7 +748,7 @@ namespace SELDController
                     serializer.Serialize(sw, obj);
                     sw.Close();
                 }
-                if (cbModeN.Checked || cbPotMode.Checked)//模型モードまたはPOTモード時はマイコンをリセット
+                if (needReset)//模型モードまたはPOTモード時はマイコンをリセット
                 {
                     cbPotMode.Checked = false;
                     cbModeN.Checked = false;
@@ -1016,8 +1051,10 @@ namespace SELDController
 
                     case 78://自動ノッチ合わせ
                         Name = "自動ノッチ合わせ";
-                        cbxAutoNotch.SelectedIndex = val;////ここ確認！
-                        cbBVEForceMode.Checked = ((val >> 6 & 1) == 1);
+                        if (val >= 0 && val < cbxAutoNotch.Items.Count) //65535(未設定)等で例外にならないよう範囲確認
+                        {
+                            cbxAutoNotch.SelectedIndex = val;
+                        }
                         break;
 
                     case 80://実際のエアー圧で自動帯再現
@@ -1228,13 +1265,13 @@ namespace SELDController
                     
                     case 144:  //制御弁モード A制御弁(0) E制御弁(1)
                         Name = "制御弁モード A制御弁(0) E制御弁(1)";
-                        if (val == 0)
+                        if (val == 0 || val == 1)
                         {
-                            tabControl2.TabIndex = 0;
-                        }
-                        else
-                        {
-                            tabControl2.TabIndex = 1;
+                            //読み出した値でタブを切り替える(TabIndexはTab移動順の設定のため誤り)
+                            //切替イベントによる基板への書き込みは行わない
+                            suppressTabControl2Write = true;
+                            try { tabControl2.SelectedIndex = val; }
+                            finally { suppressTabControl2Write = false; }
                         }
                         break;
 
@@ -1451,28 +1488,30 @@ namespace SELDController
                 tbFV_V.Text = data_.Substring(data_.IndexOf("FV(V)=") + 6, 4);
                 tbBP_V.Text = data_.Substring(data_.IndexOf("BP(V)=") + 6, 4);
                 tbFV.Text = data_.Substring(data_.IndexOf("FV=") + 3, 4);
+                tbBP.Text = data_.Substring(data_.IndexOf("BP=") + 3, 4); //BPは先に更新してから値を使う
                 Int32.TryParse(tbFV.Text, out int valueFV);
                 Int32.TryParse(tbBP.Text, out int valueBP);
-                Int32.TryParse(tbFVPressMax.Text, out int valueFVmax);
-                Int32.TryParse(tbBPPressMax.Text, out int valueBPmax);
-
-                if (valueFV > valueFVmax) valueFV = valueFVmax;
-                if (valueFV < 0) valueFV = 0;
-                tbarFV.Value = valueFV;
-                if (valueBP > valueBPmax) valueBP = valueBPmax;
-                if (valueBP < 0) valueBP = 0;
-                tbarBP.Value = valueBP;
-                tbBP.Text = data_.Substring(data_.IndexOf("BP=") + 3, 4);
+                //トラックバーの範囲(Minimum～Maximum)に収めて設定する
+                SetTrackBarValue(tbarFV, valueFV);
+                SetTrackBarValue(tbarBP, valueBP);
                 //tbFVBP.Text = data_.Substring(data_.IndexOf("(FV-BP)=") + 8, 4);
                 string temp_BC = data_.Substring(data_.IndexOf("BC=") + 3);
                 tbBCPress.Text = temp_BC.Substring(0, temp_BC.IndexOf("kPa"));
                 Double.TryParse(tbBCPress.Text, out double valueBC);
                 if (valueBC < 0) valueBC = 0;
-                tbarBCPress.Value = (int)valueBC;
+                SetTrackBarValue(tbarBCPress, (int)valueBC);
 
             }
             RefreshDataGridView();
 
+        }
+
+        //トラックバーへ値を設定する(範囲外の値で例外にならないよう Minimum～Maximum に収める)
+        private static void SetTrackBarValue(TrackBar tb, int value)
+        {
+            if (value < tb.Minimum) value = tb.Minimum;
+            if (value > tb.Maximum) value = tb.Maximum;
+            tb.Value = value;
         }
 
         private void UpdateParamList(string ParamNum, string ParamName, string Value)
@@ -1559,9 +1598,20 @@ namespace SELDController
 
         static string str_latch;
 
+        //基板への送信を一時的に止めるフラグ(XML読込で画面に値を反映する間など)
+        private bool suppressDeviceWrite = false;
+
+        //表示用電文(速度/ドア/電流…の'/'区切り)が直前と同じなら送らない。
+        //WR/RD等のコマンドは同じ内容でも毎回送る(同じ値を再度書き込みたい場合のため)
+        private static bool IsDuplicateFrame(string str)
+        {
+            return str.Contains("/") && str == str_latch;
+        }
+
         private void CommandWrite(string str, bool need_response = false)
         {
-            if ((serialPortMain.IsOpen || isBveRunning) && str_latch != str)
+            if (suppressDeviceWrite) return; //XML読込中などは基板へ送信しない
+            if ((serialPortMain.IsOpen || isBveRunning) && !IsDuplicateFrame(str))
             {
                 if (need_response)
                 {
@@ -1581,7 +1631,8 @@ namespace SELDController
         /// </summary>
         private async Task CommandWriteAsync(string str, bool need_response = false)
         {
-            if ((serialPortMain.IsOpen || isBveRunning) && str_latch != str)
+            if (suppressDeviceWrite) return; //XML読込中などは基板へ送信しない
+            if ((serialPortMain.IsOpen || isBveRunning) && !IsDuplicateFrame(str))
             {
                 if (need_response)
                 {
@@ -1677,7 +1728,7 @@ namespace SELDController
             }
 
             // 4. UI更新
-            tbarSpdTest.Value = d;
+            SetTrackBarValue(tbarSpdTest, d);
             tbSpdTest.Text = d.ToString();
         }
 
@@ -1825,7 +1876,7 @@ namespace SELDController
             {
                 speed = (int)maxSpeed;
             }
-            tbarSpdTest.Value = speed;
+            SetTrackBarValue(tbarSpdTest, speed);
             string speed_ = (speed * 10).ToString("0000");//0～3
 
             string door_ = !cbDoor.Checked ? "1" : "0";//5
@@ -1919,6 +1970,8 @@ namespace SELDController
         {
             if (e.KeyCode == Keys.Enter)
             {
+                //上段の入力欄で押された場合は、上段の値を下段へ写してから送信する
+                if (sender == tbBrkNumTop) tbBrkNum.Text = tbBrkNumTop.Text;
                 btnBrkNum_Click(sender, e);
             }
         }
@@ -2519,6 +2572,8 @@ namespace SELDController
         {
             if (e.KeyCode == Keys.Enter)
             {
+                //上段の入力欄で押された場合は、上段の値を下段へ写してから送信する
+                if (sender == tbMcNumMaxTop) tbMcNumMax.Text = tbMcNumMaxTop.Text;
                 btnMcNumMax_Click(sender, e);
             }
         }
@@ -2528,6 +2583,8 @@ namespace SELDController
         {
             if (e.KeyCode == Keys.Enter)
             {
+                //上段の入力欄で押された場合は、上段の値を下段へ写してから送信する
+                if (sender == tbMcNumTop) tbMcNum.Text = tbMcNumTop.Text;
                 btnMcNum_Click(sender, e);
             }
         }
@@ -2590,7 +2647,7 @@ namespace SELDController
             if (e.KeyCode == Keys.Enter)
             {
                 Int32.TryParse(tbBC.Text, out int num);
-                tbarBc.Value = num;
+                SetTrackBarValue(tbarBc, num);
                 tbarBc_Scroll(sender, e);
             }
         }
@@ -3428,8 +3485,15 @@ namespace SELDController
             }
         }
 
+        private bool suppressTabControl2Write = false;
         private void tabControl2_SelectedIndexChanged(object sender, EventArgs e)
         {
+            //読出し値の反映でタブを切り替えた場合は、設定の保存のみ行い基板へは書き込まない
+            if (suppressTabControl2Write)
+            {
+                Settings.Default.Evalve = (tabControl2.SelectedIndex == 1);
+                return;
+            }
             if (board_Disp)
             {
                 if (tabControl2.SelectedIndex == 0)
@@ -3635,7 +3699,7 @@ namespace SELDController
                 //{
                 var val = ((i - 12) / 2 + 1) * 10;
                 if (val > limit) val = limit;
-                tbarSpdTest.Value = val;
+                SetTrackBarValue(tbarSpdTest, val);
                 tbSpdTest.Text = tbarSpdTest.Value.ToString();
                 //}
                 await CommandWriteAsync("RD " + i.ToString("D3"), true);
@@ -3704,8 +3768,14 @@ namespace SELDController
 
         private void serialPort1_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
         {
-            MessageBox.Show(e.ToString());
-            serialPort1Close();
+            //受信スレッドから呼ばれるため、画面の操作はUIスレッドで行う
+            SerialError err = e.EventType;
+            BeginInvoke(new Action(() =>
+            {
+                AppendLog($"シリアル通信エラー: {err}\r\n");
+                MessageBox.Show($"シリアル通信エラーが発生しました({err})。通信を停止します。");
+                serialPort1Close();
+            }));
         }
 
         private void tbBrkNum_TextChanged(object sender, EventArgs e)
@@ -3763,6 +3833,7 @@ namespace SELDController
 
         private void tbUnitNum_KeyDown(object sender, KeyEventArgs e)
         {
+            if (e.KeyCode != Keys.Enter) return; //1文字ごとに送信しないようEnterでのみ送信
             Int32.TryParse(tbUnitNum.Text, out int num);
             if ((num > 0) && (num < 5))
             {
@@ -3771,7 +3842,7 @@ namespace SELDController
             }
             else
             {
-                MessageBox.Show("設定段数の範囲外です(0～4)");
+                MessageBox.Show("設定段数の範囲外です(1～4)");
             }
         }
 
@@ -3998,27 +4069,27 @@ namespace SELDController
                 string s_MR = data.Substring(51, 3);
                 tbSimPressReadMR.Text = s_MR;
                 int.TryParse(s_MR, out int MR);
-                tbarSimAirReadMR.Value = MR;
+                SetTrackBarValue(tbarSimAirReadMR, MR);
                 //BC
                 string s_BC = data.Substring(55, 3);
                 tbSimPressReadBC.Text = s_BC;
                 int.TryParse(s_BC, out int BC);
-                tbarSimAirReadBC.Value = BC;
+                SetTrackBarValue(tbarSimAirReadBC, BC);
                 //ER  
                 string s_ER = data.Substring(59, 3);
                 tbSimPressReadER.Text = s_ER;
                 int.TryParse(s_ER, out int ER);
-                tbarSimAirReadER.Value = ER;
+                SetTrackBarValue(tbarSimAirReadER, ER);
                 //SAP
                 string s_SAP = data.Substring(63, 3);
                 tbSimPressReadSAP.Text = s_SAP;
                 int.TryParse(s_SAP, out int SAP);
-                tbarSimAirReadSAP.Value = SAP;
+                SetTrackBarValue(tbarSimAirReadSAP, SAP);
                 //BP
                 string s_BP = data.Substring(67, 3);
                 tbSimPressReadBP.Text = s_BP;
                 int.TryParse(s_BP, out int BP);
-                tbarSimAirReadBP.Value = BP;
+                SetTrackBarValue(tbarSimAirReadBP, BP);
 
                 //直通ランプ
                 btnDispTestSAP.BackColor = (data.Substring(17, 1) == "1") ? Color.Yellow : SystemColors.Control;
@@ -4274,7 +4345,8 @@ namespace SELDController
 
         private void serialPort1_PinChanged(object sender, SerialPinChangedEventArgs e)
         {
-            MessageBox.Show("切断");
+            //受信スレッドから呼ばれるため、UIスレッドで表示する
+            BeginInvoke(new Action(() => MessageBox.Show("切断")));
         }
 
         private void btnReferenceChange_Click(object sender, EventArgs e)
@@ -4407,47 +4479,50 @@ namespace SELDController
 
         private async void btnFirmUpdateC_Click(object sender, EventArgs e)
         {
-            // ★追加：パスが空欄の場合はここで即座に警告して終了する
-            if (string.IsNullOrWhiteSpace(tbHexFilePathC.Text))
+            await RunForBoard(false, false, async () =>
             {
-                MessageBox.Show("書き込むHEXファイルが指定されていません。ファイルパスを選択してください。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            if (!flgSeldControllerFound)
-            {
-                MessageBox.Show("初回書込みまたは指定したポートが異なる可能性があります。");
-            }
-
-            // ファイルの存在チェック
-            if (!File.Exists(tbHexFilePathC.Text))
-            {
-                DialogResult dr_org = MessageBox.Show("ファームウェアのファイルが存在しません、続行しますか？", "確認", MessageBoxButtons.OKCancel);
-                if (dr_org != DialogResult.OK) return;
-            }
-            else
-            {
-                DialogResult dr = MessageBox.Show("ファームウェアの書き込みを開始します。", "確認", MessageBoxButtons.OKCancel);
-                if (dr != DialogResult.OK) return;
-            }
-
-            ArduinoFinder(out bool found);
-            if (found)
-            {
-                // 第3引数は "hex" に変更
-                if (flgFirmWareATSPRW)
+                // ★追加：パスが空欄の場合はここで即座に警告して終了する
+                if (string.IsNullOrWhiteSpace(tbHexFilePathC.Text))
                 {
-                    await AvrWriter_4809("write", "flash", "ファームウェアの書き込み", tbHexFilePathC.Text);
+                    MessageBox.Show("書き込むHEXファイルが指定されていません。ファイルパスを選択してください。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (!flgSeldControllerFound)
+                {
+                    MessageBox.Show("初回書込みまたは指定したポートが異なる可能性があります。");
+                }
+
+                // ファイルの存在チェック
+                if (!File.Exists(tbHexFilePathC.Text))
+                {
+                    DialogResult dr_org = MessageBox.Show("ファームウェアのファイルが存在しません、続行しますか？", "確認", MessageBoxButtons.OKCancel);
+                    if (dr_org != DialogResult.OK) return;
                 }
                 else
                 {
-                    await AvrWriter_32u4("write", "flash", "ファームウェアの書き込み", tbHexFilePathC.Text);
+                    DialogResult dr = MessageBox.Show("ファームウェアの書き込みを開始します。", "確認", MessageBoxButtons.OKCancel);
+                    if (dr != DialogResult.OK) return;
                 }
-            }
-            else
-            {
-                MessageBox.Show("対象のコントローラーが見つかりませんでした。");
-            }
+
+                ArduinoFinder(out bool found);
+                if (found)
+                {
+                    // 第3引数は "hex" に変更
+                    if (flgFirmWareATSPRW)
+                    {
+                        await AvrWriter_4809("write", "flash", "ファームウェアの書き込み", tbHexFilePathC.Text);
+                    }
+                    else
+                    {
+                        await AvrWriter_32u4("write", "flash", "ファームウェアの書き込み", tbHexFilePathC.Text);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("対象のコントローラーが見つかりませんでした。");
+                }
+            });
         }
 
         private void btnHexFileChange_Click(object sender, EventArgs e)
@@ -4473,7 +4548,10 @@ namespace SELDController
 
         private async void btnFirmBackupC_Click(object sender, EventArgs e)
         {
-            await FirmBackup(C_VERSION_NUM, "SELDController", "SELDController.ino.hex.bak");
+            await RunForBoard(false, false, async () =>
+            {
+                await FirmBackup(C_VERSION_NUM, "SELDController", "SELDController.ino.hex.bak");
+            });
         }
 
         private async Task FirmBackup(string version_num, string board_name,string fileName)
@@ -4525,6 +4603,7 @@ namespace SELDController
             if (!found)
             {
                 MessageBox.Show("Arduinoが見つかりませんでした。接続を確認してください。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return; //見つからない場合はavrdudeを実行しない
             }
 
             // 5. バックアップ処理の実行
@@ -4569,14 +4648,16 @@ namespace SELDController
                     string deviceId = device["DeviceID"]?.ToString();
 
                     // 指定されたCOMポート番号を含むデバイスを検索
-                    if (!string.IsNullOrEmpty(name) && name.Contains(targetComPort))
+                    //"(COM1)"のように括弧付きで一致させる(COM1がCOM10～19に誤一致しないように)
+                    if (!string.IsNullOrEmpty(name) && name.Contains("(" + targetComPort + ")"))
                     {
 
                         // PIDとVIDを抽出
                         if (!string.IsNullOrEmpty(deviceId))
                         {
                             string vid = ExtractValue(deviceId, "VID_");
-                            string pid = ExtractValue(deviceId, "PID_").Substring(0, 4);
+                            string pid = ExtractValue(deviceId, "PID_"); //PIDが無いデバイスでも例外にしない
+                            if (pid != null && pid.Length > 4) pid = pid.Substring(0, 4);
 
                             if (vid == "2341" &&(pid == "8037" || pid == "0058"))
                             {
@@ -4646,12 +4727,15 @@ namespace SELDController
             }
         }
 
-        private void btnEepromRoadC_Click(object sender, EventArgs e)
+        private async void btnEepromRoadC_Click(object sender, EventArgs e)
         {
-            EepromLoad(C_VERSION_NUM, "SELDController", "SELDController.ino.bin");
+            await RunForBoard(false, false, async () =>
+            {
+                await EepromLoad(C_VERSION_NUM, "SELDController", "SELDController.ino.bin");
+            });
         }
 
-        private async void EepromLoad(string version_num, string board_name, string fileName)
+        private async Task EepromLoad(string version_num, string board_name, string fileName)
         {
             // 仮のバージョン変数（実際には既に取得済みの変数名に置き換えてください）
             string currentVersion = version_num;
@@ -4683,31 +4767,41 @@ namespace SELDController
                 ArduinoFinder(out bool found);
                 if (found)
                 {
-                    await AvrWriter_32u4("read", "eeprom", "EEPROM設定値読み出し", bakFilePath);
+                    if (flgFirmWareATSPRW)
+                    {
+                        await AvrWriter_4809("read", "eeprom", "EEPROM設定値読み出し", bakFilePath); //ATS-P基板(ATmega4809)
+                    }
+                    else
+                    {
+                        await AvrWriter_32u4("read", "eeprom", "EEPROM設定値読み出し", bakFilePath);
+                    }
                 }
             }
         }
 
         private async void btnEepromWrite_Click(object sender, EventArgs e)
         {
-            DialogResult dr_org = DialogResult.Cancel;
-            DialogResult dr = DialogResult.Cancel;
-            if (!File.Exists(tbBinFilePathC.Text))
+            await RunForBoard(false, false, async () =>
             {
-                dr_org = MessageBox.Show("EEPROM設定値ファイルが存在しません", "確認", MessageBoxButtons.OK);
-            }
-            if (dr_org.Equals(DialogResult.Cancel))
-            {
-                dr = MessageBox.Show("EEPROM設定値の書き込みを開始します。", "確認", MessageBoxButtons.OKCancel);
-            }
-            if (dr.Equals(DialogResult.OK))
-            {
-                ArduinoFinder(out bool found);
-                if (found)
+                DialogResult dr_org = DialogResult.Cancel;
+                DialogResult dr = DialogResult.Cancel;
+                if (!File.Exists(tbBinFilePathC.Text))
                 {
-                    await AvrWriter_32u4("write", "eeprom", "EEPROM設定値書き込み", tbBinFilePathC.Text);
+                    dr_org = MessageBox.Show("EEPROM設定値ファイルが存在しません", "確認", MessageBoxButtons.OK);
                 }
-            }
+                if (dr_org.Equals(DialogResult.Cancel))
+                {
+                    dr = MessageBox.Show("EEPROM設定値の書き込みを開始します。", "確認", MessageBoxButtons.OKCancel);
+                }
+                if (dr.Equals(DialogResult.OK))
+                {
+                    ArduinoFinder(out bool found);
+                    if (found)
+                    {
+                        await AvrWriter_32u4("write", "eeprom", "EEPROM設定値書き込み", tbBinFilePathC.Text);
+                    }
+                }
+            });
         }
 
         // avrdudeのパスと設定
@@ -4719,6 +4813,25 @@ namespace SELDController
         private bool flgFirmWareATSPRW = false;
         private bool flgSerialPortOpenATSP = false;
         private bool flgNoFirm = false;
+
+        /// <summary>
+        /// 対象基板のフラグ(表示灯/ATS-P)を立てて処理を実行し、終了時に必ず解除する。
+        /// キャンセルや失敗でフラグが残り、次の操作が別の基板として処理されるのを防ぐ。
+        /// </summary>
+        private async Task RunForBoard(bool densei, bool atsp, Func<Task> action)
+        {
+            flgFirmWareDenseiRW = densei;
+            flgFirmWareATSPRW = atsp;
+            try
+            {
+                await action();
+            }
+            finally
+            {
+                flgFirmWareDenseiRW = false;
+                flgFirmWareATSPRW = false;
+            }
+        }
 
         private async Task AvrWriter_32u4(string read_or_write, string flash_or_eeprom, string contents, string filepath)
         {
@@ -4832,7 +4945,6 @@ namespace SELDController
 
                 if(flgFirmWareDenseiRW){
                     setSerialComboBox(cbPortSelectDensei, null);
-                    flgFirmWareDenseiRW = false;
                 }else {
                     setSerialComboBox(cbPortSelect, null);
                 }
@@ -4969,7 +5081,6 @@ namespace SELDController
                 if (flgFirmWareATSPRW)
                 {
                     setSerialComboBox(cbPortSelectATSP, null);
-                    flgFirmWareDenseiRW = false;
                 }
 
                 sp.BaudRate = 115200;
@@ -4979,10 +5090,6 @@ namespace SELDController
             {
                 AppendLog($"エラー: avrdudeが終了コード {exitCode} で終了しました。\r\n");
                 MessageBox.Show(contents + "に失敗しました。\n\n詳細はtbLog内のログを確認してください。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            if (flgFirmWareATSPRW)
-            {
-                flgFirmWareATSPRW = false;
             }
         }
 
@@ -5205,6 +5312,8 @@ namespace SELDController
             }
         }
 
+        private bool pipeErrorShown = false;
+
         public void Intervene(string message)
         {
             using (var client = new NamedPipeClientStream(".", "SeldExIntervention", PipeDirection.Out))
@@ -5217,11 +5326,17 @@ namespace SELDController
                         writer.WriteLine(message); // 改行付きで送る（AのReadLineに対応）
                         writer.Flush();
                     }
+                    pipeErrorShown = false; //送信できたらエラー表示の抑止を解除
                 }
                 catch (Exception ex)
                 {
-                    // 接続に失敗した場合はここにMessageBoxを出して確認
-                    MessageBox.Show("Pipe Connect Error: " + ex.Message);
+                    AppendLog("Pipe Connect Error: " + ex.Message + "\r\n");
+                    //続けて失敗してもメッセージは1回だけ表示する(全設定読出しで大量に出るのを防ぐ)
+                    if (!pipeErrorShown)
+                    {
+                        pipeErrorShown = true;
+                        MessageBox.Show("Pipe Connect Error: " + ex.Message);
+                    }
                 }
             }
         }
@@ -5480,14 +5595,18 @@ namespace SELDController
 
         private async void btnFirmBackupD_Click(object sender, EventArgs e)
         {
-            flgFirmWareDenseiRW = true;
-            await FirmBackup(D_VERSION_NUM, "Densei6", "Densei6.ino.hex.bak");
+            await RunForBoard(true, false, async () =>
+            {
+                await FirmBackup(D_VERSION_NUM, "Densei6", "Densei6.ino.hex.bak");
+            });
         }
 
-        private void btnEepromLoadD_Click(object sender, EventArgs e)
+        private async void btnEepromLoadD_Click(object sender, EventArgs e)
         {
-            flgFirmWareDenseiRW = true;
-            EepromLoad(D_VERSION_NUM, "Densei6", "Densei6.ino.bin");
+            await RunForBoard(true, false, async () =>
+            {
+                await EepromLoad(D_VERSION_NUM, "Densei6", "Densei6.ino.bin");
+            });
         }
 
         private void cbVersionListDHex_SelectedIndexChanged(object sender, EventArgs e)
@@ -5510,65 +5629,69 @@ namespace SELDController
 
         private async void btnFirmUpdateD_Click(object sender, EventArgs e)
         {
-            flgFirmWareDenseiRW = true;
-            //パスが空欄の場合はここで即座に警告して終了する
-            if (string.IsNullOrWhiteSpace(tbHexFilePathD.Text))
+            await RunForBoard(true, false, async () =>
             {
-                MessageBox.Show("書き込むHEXファイルが指定されていません。ファイルパスを選択してください。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
+                //パスが空欄の場合はここで即座に警告して終了する
+                if (string.IsNullOrWhiteSpace(tbHexFilePathD.Text))
+                {
+                    MessageBox.Show("書き込むHEXファイルが指定されていません。ファイルパスを選択してください。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
 
-            /*if (!flgSeldControllerFound)
-            {
-                MessageBox.Show("初回書込みまたは指定したポートが異なる可能性があります。");
-            }*/
+                /*if (!flgSeldControllerFound)
+                {
+                    MessageBox.Show("初回書込みまたは指定したポートが異なる可能性があります。");
+                }*/
 
-            // ファイルの存在チェック
-            if (!File.Exists(tbHexFilePathD.Text))
-            {
-                DialogResult dr_org = MessageBox.Show("ファームウェアのファイルが存在しません、続行しますか？", "確認", MessageBoxButtons.OKCancel);
-                if (dr_org != DialogResult.OK) return;
-            }
-            else
-            {
-                DialogResult dr = MessageBox.Show("ファームウェアの書き込みを開始します。", "確認", MessageBoxButtons.OKCancel);
-                if (dr != DialogResult.OK) return;
-            }
+                // ファイルの存在チェック
+                if (!File.Exists(tbHexFilePathD.Text))
+                {
+                    DialogResult dr_org = MessageBox.Show("ファームウェアのファイルが存在しません、続行しますか？", "確認", MessageBoxButtons.OKCancel);
+                    if (dr_org != DialogResult.OK) return;
+                }
+                else
+                {
+                    DialogResult dr = MessageBox.Show("ファームウェアの書き込みを開始します。", "確認", MessageBoxButtons.OKCancel);
+                    if (dr != DialogResult.OK) return;
+                }
 
-            ArduinoFinder(out bool found);
-            if (found)
-            {
-                // 第3引数は "hex" に変更
-                await AvrWriter_32u4("write", "flash", "ファームウェアの書き込み", tbHexFilePathD.Text);
-            }
-            else
-            {
-                MessageBox.Show("対象のコントローラーが見つかりませんでした。");
-            }
+                ArduinoFinder(out bool found);
+                if (found)
+                {
+                    // 第3引数は "hex" に変更
+                    await AvrWriter_32u4("write", "flash", "ファームウェアの書き込み", tbHexFilePathD.Text);
+                }
+                else
+                {
+                    MessageBox.Show("対象のコントローラーが見つかりませんでした。");
+                }
 
+            });
         }
 
         private async void btnEepromWriteD_Click(object sender, EventArgs e)
         {
-            flgFirmWareDenseiRW = true;
-            DialogResult dr_org = DialogResult.Cancel;
-            DialogResult dr = DialogResult.Cancel;
-            if (!File.Exists(tbBinFilePathD.Text))
+            await RunForBoard(true, false, async () =>
             {
-                dr_org = MessageBox.Show("EEPROM設定値ファイルが存在しません", "確認", MessageBoxButtons.OK);
-            }
-            if (dr_org.Equals(DialogResult.Cancel))
-            {
-                dr = MessageBox.Show("EEPROM設定値の書き込みを開始します。", "確認", MessageBoxButtons.OKCancel);
-            }
-            if (dr.Equals(DialogResult.OK))
-            {
-                ArduinoFinder(out bool found);
-                if (found)
+                DialogResult dr_org = DialogResult.Cancel;
+                DialogResult dr = DialogResult.Cancel;
+                if (!File.Exists(tbBinFilePathD.Text))
                 {
-                    await AvrWriter_32u4("write", "eeprom", "EEPROM設定値書き込み", tbBinFilePathD.Text);
+                    dr_org = MessageBox.Show("EEPROM設定値ファイルが存在しません", "確認", MessageBoxButtons.OK);
                 }
-            }
+                if (dr_org.Equals(DialogResult.Cancel))
+                {
+                    dr = MessageBox.Show("EEPROM設定値の書き込みを開始します。", "確認", MessageBoxButtons.OKCancel);
+                }
+                if (dr.Equals(DialogResult.OK))
+                {
+                    ArduinoFinder(out bool found);
+                    if (found)
+                    {
+                        await AvrWriter_32u4("write", "eeprom", "EEPROM設定値書き込み", tbBinFilePathD.Text);
+                    }
+                }
+            });
         }
 
         private void button11_Click(object sender, EventArgs e)
@@ -5578,75 +5701,81 @@ namespace SELDController
 
         private async void btnFirmBackupP_Click(object sender, EventArgs e)
         {
-            flgFirmWareATSPRW = true;
-            await FirmBackup(P_VERSION_NUM, "SNP_SRD", "SNP_SRD.ino.hex.bak");
+            await RunForBoard(false, true, async () =>
+            {
+                await FirmBackup(P_VERSION_NUM, "SNP_SRD", "SNP_SRD.ino.hex.bak");
+            });
         }
 
         private void btnEepromLoadP_Click(object sender, EventArgs e)
         {
-            flgFirmWareATSPRW = true;
+            //未使用(ボタンには btnEepromLoadP_Click_1 が登録されている)
         }
 
         private async void btnFirmUpdateP_Click(object sender, EventArgs e)
         {
-            flgFirmWareATSPRW = true;
-            //パスが空欄の場合はここで即座に警告して終了する
-            if (string.IsNullOrWhiteSpace(tbHexFilePathP.Text))
+            await RunForBoard(false, true, async () =>
             {
-                MessageBox.Show("書き込むHEXファイルが指定されていません。ファイルパスを選択してください。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
+                //パスが空欄の場合はここで即座に警告して終了する
+                if (string.IsNullOrWhiteSpace(tbHexFilePathP.Text))
+                {
+                    MessageBox.Show("書き込むHEXファイルが指定されていません。ファイルパスを選択してください。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
 
-            /*if (!flgSeldControllerFound)
-            {
-                MessageBox.Show("初回書込みまたは指定したポートが異なる可能性があります。");
-            }*/
+                /*if (!flgSeldControllerFound)
+                {
+                    MessageBox.Show("初回書込みまたは指定したポートが異なる可能性があります。");
+                }*/
 
-            // ファイルの存在チェック
-            if (!File.Exists(tbHexFilePathP.Text))
-            {
-                DialogResult dr_org = MessageBox.Show("ファームウェアのファイルが存在しません、続行しますか？", "確認", MessageBoxButtons.OKCancel);
-                if (dr_org != DialogResult.OK) return;
-            }
-            else
-            {
-                DialogResult dr = MessageBox.Show("ファームウェアの書き込みを開始します。", "確認", MessageBoxButtons.OKCancel);
-                if (dr != DialogResult.OK) return;
-            }
+                // ファイルの存在チェック
+                if (!File.Exists(tbHexFilePathP.Text))
+                {
+                    DialogResult dr_org = MessageBox.Show("ファームウェアのファイルが存在しません、続行しますか？", "確認", MessageBoxButtons.OKCancel);
+                    if (dr_org != DialogResult.OK) return;
+                }
+                else
+                {
+                    DialogResult dr = MessageBox.Show("ファームウェアの書き込みを開始します。", "確認", MessageBoxButtons.OKCancel);
+                    if (dr != DialogResult.OK) return;
+                }
 
-            ArduinoFinder(out bool found);
-            if (found)
-            {
-                // 第3引数は "hex" に変更
-                await AvrWriter_4809("write", "flash", "ファームウェアの書き込み", tbHexFilePathP.Text);
-            }
-            else
-            {
-                MessageBox.Show("対象のコントローラーが見つかりませんでした。");
-            }
+                ArduinoFinder(out bool found);
+                if (found)
+                {
+                    // 第3引数は "hex" に変更
+                    await AvrWriter_4809("write", "flash", "ファームウェアの書き込み", tbHexFilePathP.Text);
+                }
+                else
+                {
+                    MessageBox.Show("対象のコントローラーが見つかりませんでした。");
+                }
+            });
         }
 
         private async void btnEepromWriteP_Click(object sender, EventArgs e)
         {
-            flgFirmWareATSPRW = true;
-            DialogResult dr_org = DialogResult.Cancel;
-            DialogResult dr = DialogResult.Cancel;
-            if (!File.Exists(tbBinFilePathP.Text))
+            await RunForBoard(false, true, async () =>
             {
-                dr_org = MessageBox.Show("EEPROM設定値ファイルが存在しません", "確認", MessageBoxButtons.OK);
-            }
-            if (dr_org.Equals(DialogResult.Cancel))
-            {
-                dr = MessageBox.Show("EEPROM設定値の書き込みを開始します。", "確認", MessageBoxButtons.OKCancel);
-            }
-            if (dr.Equals(DialogResult.OK))
-            {
-                ArduinoFinder(out bool found);
-                if (found)
+                DialogResult dr_org = DialogResult.Cancel;
+                DialogResult dr = DialogResult.Cancel;
+                if (!File.Exists(tbBinFilePathP.Text))
                 {
-                    await AvrWriter_4809("write", "eeprom", "EEPROM設定値書き込み", tbBinFilePathP.Text);
+                    dr_org = MessageBox.Show("EEPROM設定値ファイルが存在しません", "確認", MessageBoxButtons.OK);
                 }
-            }
+                if (dr_org.Equals(DialogResult.Cancel))
+                {
+                    dr = MessageBox.Show("EEPROM設定値の書き込みを開始します。", "確認", MessageBoxButtons.OKCancel);
+                }
+                if (dr.Equals(DialogResult.OK))
+                {
+                    ArduinoFinder(out bool found);
+                    if (found)
+                    {
+                        await AvrWriter_4809("write", "eeprom", "EEPROM設定値書き込み", tbBinFilePathP.Text);
+                    }
+                }
+            });
         }
 
         private void btnFirmDirOpenHexP_Click(object sender, EventArgs e)
@@ -5755,10 +5884,12 @@ namespace SELDController
             }
         }
 
-        private void btnEepromLoadP_Click_1(object sender, EventArgs e)
+        private async void btnEepromLoadP_Click_1(object sender, EventArgs e)
         {
-            flgFirmWareATSPRW = true;
-            EepromLoad(P_VERSION_NUM, "SNP_SRD", "SNP_SRD.ino.bin");
+            await RunForBoard(false, true, async () =>
+            {
+                await EepromLoad(P_VERSION_NUM, "SNP_SRD", "SNP_SRD.ino.bin");
+            });
         }
 
         private void cbVersionListPBin_SelectedIndexChanged_1(object sender, EventArgs e)
@@ -5871,6 +6002,9 @@ namespace SELDController
             }
         }
 
+        // XML読込時に反映しない番号(基板の種類・バージョン・接続確認)
+        private static readonly HashSet<int> BoardInfoAddrs = new HashSet<int> { 90, 92, 94, 100, 190, 192, 194, 240, 242, 244 };
+
         // XML から読み込むメソッド
         private void LoadParamListFromXml(string filePath)
         {
@@ -5896,12 +6030,20 @@ namespace SELDController
                         paramList.AddRange(loadedList);
 
                         // 各ParamDataを処理して read_Settings() を呼び出す
+                        // ※XML読込中は画面へ反映するだけで基板へは送信しない(チェックボックス変更による自動書込みを防ぐ)
+                        suppressDeviceWrite = true;
+                        try
+                        {
                         foreach (ParamData param in loadedList)
                         {
                             try
                             {
                                 // Num が3文字であることを確認
                                 string numStr = param.Num.PadLeft(3, '0');  // 不足分を0で埋める
+
+                                // 基板の種類・バージョン等は接続中の基板の情報なので、XMLの値では上書きしない
+                                int.TryParse(numStr, out int addrNum);
+                                if (BoardInfoAddrs.Contains(addrNum)) continue;
 
                                 // "OK Num Data" の形式で文字列を構築
                                 string data_all_ = $"OK {numStr} {param.Data}";
@@ -5917,11 +6059,16 @@ namespace SELDController
                                 AppendLog($"エラー [{param.Num}]: {itemEx.Message}\r\n");
                             }
                         }
+                        }
+                        finally
+                        {
+                            suppressDeviceWrite = false;
+                        }
 
                         // DataGridViewを更新
                         RefreshDataGridView();
 
-                        MessageBox.Show("paramList を XML から読み込みました\n" + filePath, "読込完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show("paramList を XML から読み込みました\n" + filePath + "\n\n基板へ反映するには[全設定値保存]を押してください。", "読込完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 }
             }
